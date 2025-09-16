@@ -13,7 +13,7 @@ import {
 import { AuthService } from 'src/Autentication/auth.service';
 import { CreateUserDto, UpdateUserDto } from './user.dto';
 import { UsersService } from './users.service';
-@Controller('Users')
+@Controller('users')
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
