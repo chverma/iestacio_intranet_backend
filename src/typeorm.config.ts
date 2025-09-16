@@ -2,6 +2,7 @@ import { registerAs } from '@nestjs/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { User } from './users/users.entity';
 import * as dotenv from 'dotenv';
+import { Schedule } from './schedule/schedule.entity';
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ const config = {
   database: process.env.MYSQL_DATABASE,
   entities: [
     User,
+    Schedule
   ],
   migrations: ['./src/migrations/*.ts'],
   synchronize: false,

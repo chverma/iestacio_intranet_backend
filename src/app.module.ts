@@ -12,6 +12,8 @@ import { User } from './users/users.entity';
 import { AuthorizationMiddleware } from './authorization.middleware';
 import { AuthService } from './Autentication/auth.service';
 import { FilesModule } from './files/files.module';
+import { ScheduleModule } from './schedule/schedule.module';
+import { Schedule } from './schedule/schedule.entity';
 
 @Module({
   imports: [
@@ -33,12 +35,14 @@ import { FilesModule } from './files/files.module';
         database: configService.get('MYSQL_DATABASE'),
         entities: [
           User,
+          Schedule
         ],
         synchronize: true,
       }),
       inject: [ConfigService],
     }),
     FilesModule,
+    ScheduleModule,
   ],
   controllers: [],
   providers: [AuthorizationMiddleware, AuthService],

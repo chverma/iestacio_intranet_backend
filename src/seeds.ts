@@ -4,6 +4,8 @@ import { runSeeders, SeederOptions } from 'typeorm-extension';
 import { User } from './users/users.entity';
 import { UserSeeder } from './db/seeding/seeds/users.seeder';
 import { config } from 'dotenv';
+import { Schedule } from './schedule/schedule.entity';
+import { ScheduleSeeder } from './db/seeding/seeds/schedule.seeder';
 config();
 
 const options: DataSourceOptions & SeederOptions = {
@@ -16,9 +18,11 @@ const options: DataSourceOptions & SeederOptions = {
 
   entities: [
     User,
+    Schedule
   ],
   seeds: [
     UserSeeder,
+    ScheduleSeeder
   ],
 };
 
