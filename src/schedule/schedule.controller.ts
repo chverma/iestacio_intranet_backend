@@ -31,13 +31,13 @@ export class ScheduleController {
     return this.scheduleService.getScheduleByUserId(userId);
   }
 
-  @Get('user/:id/calendar')
+  @Get('user/:id/schedule')
   async getCalendarScheduleByUserId(@Param('id') id: string, @Res() res: Response) {
     const userId = parseInt(id);
     if (isNaN(userId)) {
       throw new HttpException('Invalid user ID', HttpStatus.BAD_REQUEST);
     }
-    return res.render('calendar', {schedule: await this.scheduleService.getCalendarScheduleByUserId(userId, res)});
+    return res.render('schedule', {schedule: await this.scheduleService.getCalendarScheduleByUserId(userId, res)});
   }
 
   @Post()
