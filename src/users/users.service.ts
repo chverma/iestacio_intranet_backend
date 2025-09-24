@@ -59,4 +59,16 @@ export class UsersService {
     return null;
   }
 
+  async getUserByToken(token: string): Promise<User> {
+    const user = await this.usersRepository.findOne({
+      where: { token: token },
+    });
+
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    return user;
+  }
+
 }

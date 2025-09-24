@@ -38,6 +38,11 @@ export class UsersController {
     }
   }
 
+  @Get('by-token/:token')
+  getUserByToken(@Param('token') tokenStr: string) {
+    return this.usersService.getUserByToken(tokenStr);
+  }
+
   @Get(':id')
   getUser(@Param('id') id: string) {
     const userId = parseInt(id);
