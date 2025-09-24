@@ -1,7 +1,7 @@
 import { IsString, ValidateNested, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class ScheduleDayDto {
+export class ScheduleSubjectDto {
   @IsString()
   start: string;
 
@@ -15,51 +15,52 @@ export class ScheduleDayDto {
   subject: string;
 }
 
+
 export class createScheduleDto {
   @ValidateNested()
-  @Type(() => ScheduleDayDto)
-  monday?: ScheduleDayDto;
+  @Type(() => ScheduleSubjectDto)
+  monday?: ScheduleSubjectDto[];
 
   @ValidateNested()
-  @Type(() => ScheduleDayDto)
-  tuesday?: ScheduleDayDto;
+  @Type(() => ScheduleSubjectDto)
+  tuesday?: ScheduleSubjectDto[];
 
   @ValidateNested()
-  @Type(() => ScheduleDayDto)
-  wednesday?: ScheduleDayDto;
+  @Type(() => ScheduleSubjectDto)
+  wednesday?: ScheduleSubjectDto[];
 
   @ValidateNested()
-  @Type(() => ScheduleDayDto)
-  thursday?: ScheduleDayDto;
+  @Type(() => ScheduleSubjectDto)
+  thursday?: ScheduleSubjectDto[];
 
   @ValidateNested()
-  @Type(() => ScheduleDayDto)
-  friday?: ScheduleDayDto;
+  @Type(() => ScheduleSubjectDto)
+  friday?: ScheduleSubjectDto[];
 }
 
 export class updateScheduleDto {
   @IsOptional()
   @ValidateNested()
-  @Type(() => ScheduleDayDto)
-  monday?: ScheduleDayDto;
+  @Type(() => ScheduleSubjectDto)
+  monday?: ScheduleSubjectDto[];
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => ScheduleDayDto)
-  tuesday?: ScheduleDayDto;
+  @Type(() => ScheduleSubjectDto)
+  tuesday?: ScheduleSubjectDto[];
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => ScheduleDayDto)
-  wednesday?: ScheduleDayDto;
+  @Type(() => ScheduleSubjectDto)
+  wednesday?: ScheduleSubjectDto[];
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => ScheduleDayDto)
-  thursday?: ScheduleDayDto;
+  @Type(() => ScheduleSubjectDto)
+  thursday?: ScheduleSubjectDto[];
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => ScheduleDayDto)
-  friday?: ScheduleDayDto;
+  @Type(() => ScheduleSubjectDto)
+  friday?: ScheduleSubjectDto[];
 }

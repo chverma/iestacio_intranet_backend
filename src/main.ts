@@ -1,13 +1,32 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import * as hbs from 'hbs';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.enableCors({
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
+  app.useStaticAssets(join(__dirname, '..', 'public'));
+  app.setBaseViewsDir(join(__dirname, '..', 'views'));
+  app.setViewEngine('hbs');
+
+  // Helpers para Handlebars
+  hbs.registerHelper('array', function() {
+    return Array.prototype.slice.call(arguments, 0, -1);
+  });
+
+  hbs.registerHelper('findSlot', function(dayArray, slot) {
+    if (slot === undefined) return null;
+    if (!Array.isArray(dayArray)) return null;
+    const [start, end] = slot.split('-');
+    return dayArray.find(item => item.start === start && item.end === end) || null;
+  });
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

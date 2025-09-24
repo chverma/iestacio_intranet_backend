@@ -23,6 +23,19 @@ export class ScheduleService {
     return schedule;
   }
 
+  async getScheduleByUserId(userId: number): Promise<Schedule> {
+    const schedule = await this.scheduleRepository.findOne({ where: { user: { id_user: userId } }, relations: ['user'] });
+    if (!schedule) {
+      throw new HttpException('No schedule found for user', HttpStatus.NOT_FOUND);
+    }
+    return schedule;
+  }
+
+  async getCalendarScheduleByUserId(userId: number, res): Promise<Schedule> {
+    const schedule = await this.getScheduleByUserId(userId);
+    return schedule;
+  }
+
   async createSchedule(scheduleDto: createScheduleDto): Promise<Schedule> {
     const schedule = this.scheduleRepository.create(scheduleDto);
     const saved = await this.scheduleRepository.save(schedule);

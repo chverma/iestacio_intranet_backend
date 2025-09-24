@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { User } from '../users/users.entity';
 
-export type ScheduleDay = {
+export type ScheduleSubject = {
   start: string;
   end: string;
   location: string;
@@ -24,17 +24,17 @@ export class Schedule {
   user: User;
 
   @Column('json')
-  monday: ScheduleDay;
+  monday: ScheduleSubject[];
 
   @Column('json')
-  tuesday: ScheduleDay;
+  tuesday: ScheduleSubject[];
 
   @Column('json')
-  wednesday: ScheduleDay;
+  wednesday: ScheduleSubject[];
 
   @Column('json')
-  thursday: ScheduleDay;
+  thursday: ScheduleSubject[];
 
   @Column('json')
-  friday: ScheduleDay;
+  friday: ScheduleSubject[];
 }
