@@ -3,6 +3,8 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import { User } from './users/users.entity';
 import * as dotenv from 'dotenv';
 import { Schedule } from './schedule/schedule.entity';
+import { CalendarEvent } from './calendarEvent/calendarEvent.entity';
+import { Absence } from './absence/absence.entity';
 
 dotenv.config();
 
@@ -15,7 +17,9 @@ const config = {
   database: process.env.MYSQL_DATABASE,
   entities: [
     User,
-    Schedule
+    Schedule,
+    Event,
+    Absence
   ],
   migrations: ['./src/migrations/*.ts'],
   synchronize: false,

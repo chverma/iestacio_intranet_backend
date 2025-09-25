@@ -6,6 +6,10 @@ import { UserSeeder } from './db/seeding/seeds/users.seeder';
 import { config } from 'dotenv';
 import { Schedule } from './schedule/schedule.entity';
 import { ScheduleSeeder } from './db/seeding/seeds/schedule.seeder';
+import { EventSeeder } from './db/seeding/seeds/calendarEvent.seeder';
+import { Absence } from './absence/absence.entity';
+import { CalendarEvent } from './calendarEvent/calendarEvent.entity';
+import { AbsenceSeeder } from './db/seeding/seeds/absence.seeder';
 config();
 
 const options: DataSourceOptions & SeederOptions = {
@@ -18,11 +22,15 @@ const options: DataSourceOptions & SeederOptions = {
 
   entities: [
     User,
-    Schedule
+    Schedule,
+    CalendarEvent,
+    Absence
   ],
   seeds: [
     UserSeeder,
-    ScheduleSeeder
+    ScheduleSeeder,
+    EventSeeder,
+    AbsenceSeeder
   ],
 };
 

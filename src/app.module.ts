@@ -14,12 +14,14 @@ import { AuthService } from './Autentication/auth.service';
 import { FilesModule } from './files/files.module';
 import { ScheduleModule } from './schedule/schedule.module';
 import { Schedule } from './schedule/schedule.entity';
+import { AbsenceModule } from './absence/absence.module';
+import { Absence } from './absence/absence.entity';
+import { CalendarEventModule } from './calendarEvent/calendarEvent.module';
+import { CalendarEvent } from './calendarEvent/calendarEvent.entity';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    UsersModule,
-    UtilsModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -35,14 +37,20 @@ import { Schedule } from './schedule/schedule.entity';
         database: configService.get('MYSQL_DATABASE'),
         entities: [
           User,
-          Schedule
+          Schedule,
+          Absence,
+          CalendarEvent
         ],
         synchronize: true,
       }),
       inject: [ConfigService],
     }),
+    UsersModule,
+    UtilsModule,
     FilesModule,
     ScheduleModule,
+    AbsenceModule,
+    CalendarEventModule
   ],
   controllers: [],
   providers: [AuthorizationMiddleware, AuthService],
