@@ -41,6 +41,7 @@ export class CalendarEventService {
 
   async createEvent(eventDto: createEventDto): Promise<CalendarEvent> {
     const event = this.eventRepository.create(eventDto);
+    event.body = await this.parseHTMLBody(eventDto.body);
     event.user = await this.userRepository.findOne({ where: { email: eventDto.email } });
     const saved = await this.eventRepository.save(event);
     return saved;
