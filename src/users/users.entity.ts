@@ -1,7 +1,9 @@
+import { CalendarEvent } from 'src/calendarEvent/calendarEvent.entity';
 import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity()
@@ -29,4 +31,7 @@ export class User {
 
   @Column({ nullable: true })
   token: string;
+
+  @OneToMany(() => CalendarEvent, (event) => event.user)
+  events: CalendarEvent[];
 }

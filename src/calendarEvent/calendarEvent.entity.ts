@@ -2,7 +2,7 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  OneToOne,
+  ManyToOne,
   JoinColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -13,8 +13,8 @@ export class CalendarEvent {
   @PrimaryGeneratedColumn()
   id_event: number;
 
-  @OneToOne(() => User)
-  @JoinColumn()
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'id_user' })
   user: User;
 
   @Column()
