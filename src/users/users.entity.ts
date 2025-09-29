@@ -1,4 +1,4 @@
-import { CalendarEvent } from 'src/calendarEvent/calendarEvent.entity';
+import { CalendarEvent } from '../calendarEvent/calendarEvent.entity';
 import {
   Entity,
   Column,
