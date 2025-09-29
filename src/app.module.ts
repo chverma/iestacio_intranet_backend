@@ -35,12 +35,13 @@ import { CalendarEvent } from './calendarEvent/calendarEvent.entity';
         username: configService.get('MYSQL_USER'),
         password: configService.get('MYSQL_PASSWORD'),
         database: configService.get('MYSQL_DATABASE'),
-        entities: [
+        /*entities: [
           User,
           Schedule,
           Absence,
           CalendarEvent
-        ],
+        ],*/
+        autoLoadEntities: true,
         synchronize: true,
       }),
       inject: [ConfigService],
