@@ -4,11 +4,17 @@ import eventData from '../../../data/calendarEvent';
 import { CalendarEvent } from '../../../calendarEvent/calendarEvent.entity';
 import { User } from '../../../users/users.entity';
 import { CalendarEventService } from '../../../calendarEvent/calendarEvent.service';
+import { AbsenceService } from '../../../absence/absence.service';
+import { Schedule } from '../../../schedule/schedule.entity';
+import { Absence } from '../../../absence/absence.entity';
+
 export class EventSeeder implements Seeder {
   public async run(dataSource: DataSource): Promise<any> {
     const eventRepository = dataSource.getRepository(CalendarEvent);
     const userRepository = dataSource.getRepository(User);
-    const calendarEventService = new CalendarEventService(eventRepository, userRepository);
+    const scheduleRepository = dataSource.getRepository(Schedule);
+    const absenceRepository = dataSource.getRepository(Absence);
+    const calendarEventService = new CalendarEventService(eventRepository, userRepository, scheduleRepository, absenceRepository);
 
     const eventEntries = await Promise.all(
       eventData.map(async (item) => {

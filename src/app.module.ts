@@ -18,9 +18,11 @@ import { AbsenceModule } from './absence/absence.module';
 import { Absence } from './absence/absence.entity';
 import { CalendarEventModule } from './calendarEvent/calendarEvent.module';
 import { CalendarEvent } from './calendarEvent/calendarEvent.entity';
+import { ScheduleModule as ScheduleCron } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleCron.forRoot(),
     ConfigModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,

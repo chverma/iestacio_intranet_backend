@@ -38,4 +38,7 @@ export class CalendarEvent {
   @Column('datetime', { default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
+  @Column({ default: false })
+  processed: boolean;
+
 }
