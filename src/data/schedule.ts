@@ -23,7 +23,7 @@ export default [
     {"subject":"02-Reunión departamento didáctico","location":"Sin aula","start":"15:10","end":"16:05"},
   ],
   "thursday":[
-    {"subject":"COMPLEMENTARIAS AUTORIZADAS","location":"Sin aula","start":"09:55","end":"12:10"},
+    {"subject":"COMPLEMENTARIAS AUTORIZADAS","location":"Sin aula","start":"09:55","end":"10:50"},
     {"subject":"ATENCIÓN A FAMILIAS","location":"Sin aula","start":"11:15","end":"12:10"},
     {"subject":"SRE-Servicios en red","location":"AULA 65","start":"12:10","end":"13:05"},
     {"subject":"SRE-Servicios en red","location":"AULA 65","start":"13:05","end":"14:00"},
