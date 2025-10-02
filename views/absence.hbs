@@ -7,38 +7,28 @@
 </head>
 
 <body>
-  <h2>Faltes setmanals de {{schedule.user.name}} {{schedule.user.surname}}</h2>
+  <h2>Faltes de hui +- 1 hora</h2>
   <table border="1" cellpadding="8" style="border-collapse:collapse; width:100%; text-align:center;">
     <thead>
       <tr>
         <th>Hora</th>
-        <th>Dilluns</th>
-        <th>Dimarts</th>
-        <th>Dimecres</th>
-        <th>Dijous</th>
-        <th>Divendres</th>
+        <th>Assignatura</th>
+        <th>Ubicació</th>
+        <th>Treball</th>
+        <th>Docent</th>
       </tr>
     </thead>
     <tbody>
-      {{!-- Franja horaria fixa --}}
-      {{#each (array
-        "08:05-09:00" "09:00-09:55" "09:55-10:50" "10:50-11:15" "11:15-12:10" "12:10-13:05" "13:05-14:00" "14:00-14:10" "14:10-15:00" "15:10-16:05" "16:05-17:00" "17:00-17:55" "17:55-18:15" "18:15-19:10" "19:10-20:05" "20:05-21:00" "21:00-21:10" "21:10-22:00"
-      ) as |slot|}}
+      {{#each absence}}
       <tr>
-        <td>{{slot}}</td>
-        {{!-- Para cada día, busca si hay elemento en esa franja --}}
-        {{#each (array "monday" "tuesday" "wednesday" "thursday" "friday") as |day|}}
-          <td>
-              <div style="font-size:10px;color:gray;">
-            {{#if (findSlot (lookup ../../schedule day) slot)}}
-              {{#with (findSlot (lookup ../../schedule day) slot)}}
-                <div><b>{{subject}}</b><br>{{location}}</div>
-              {{/with}}
-            {{else}}
-              &nbsp;
-            {{/if}}
-          </td>
-        {{/each}}
+        <td>
+          {{!-- Extrae la hora local de Madrid --}}
+          {{formatHour date_absence}}
+        </td>
+        <td>{{subject}}</td>
+        <td>{{location}}</td>
+        <td>{{work}}</td>
+        <td>{{user.name}} {{user.surname}}</td>
       </tr>
       {{/each}}
     </tbody>

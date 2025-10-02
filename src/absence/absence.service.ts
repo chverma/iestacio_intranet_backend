@@ -36,6 +36,19 @@ export class AbsenceService {
     return absence;
   }
 
+  async getCalendarAbsence(): Promise<Absence[]> {
+    const now = new Date();
+    const oneHourBefore = new Date(now.getTime() - 60 * 60 * 1000);
+    const oneHourAfter = new Date(now.getTime() + 60 * 60 * 1000);
+    return this.absenceRepository.createQueryBuilder('absence')
+      .leftJoinAndSelect('absence.user', 'user')
+      .where('absence.date_absence BETWEEN :start AND :end', {
+        start: oneHourBefore,
+        end: oneHourAfter,
+      })
+      .getMany();
+  }
+
   async createAbsence(absenceDto: createAbsenceDto): Promise<Absence> {
     const absence = this.absenceRepository.create(absenceDto);
     const saved = await this.absenceRepository.save(absence);

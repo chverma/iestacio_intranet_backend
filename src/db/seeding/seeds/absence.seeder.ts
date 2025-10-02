@@ -12,11 +12,11 @@ export class AbsenceSeeder implements Seeder {
     const absenceEntries = await Promise.all(
       absenceData.map(async (item) => {
         const absenceEntry = new Absence();
-        absenceEntry.friday = item.friday;
-        absenceEntry.monday = item.monday;
-        absenceEntry.thursday = item.thursday;
-        absenceEntry.tuesday = item.tuesday;
-        absenceEntry.wednesday = item.wednesday;
+        absenceEntry.subject = item.subject;
+        absenceEntry.location = item.location;
+        absenceEntry.work = item.work;
+        absenceEntry.date_absence = item.date_absence;
+
         absenceEntry.user = await userRepository.findOneBy({
           id_user: item.id_user,
         });

@@ -2,52 +2,40 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  OneToOne,
+  ManyToOne,
   JoinColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../users/users.entity';
-
-export type AbsenceSubject = {
-  start: string;
-  end: string;
-  date_absence: Date;
-  location: string;
-  subject: string;
-  work: string;
-};
 
 @Entity()
 export class Absence {
   @PrimaryGeneratedColumn()
   id_absence: number;
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User)
   @JoinColumn()
   user: User;
 
-  @Column('json')
-  monday: AbsenceSubject[];
+  @Column('varchar', { length: 255 })
+  subject: string;
 
-  @Column('json')
-  tuesday: AbsenceSubject[];
+  @Column('varchar', { length: 255 })
+  location: string;
 
-  @Column('json')
-  wednesday: AbsenceSubject[];
+  @Column('varchar', { length: 255 })
+  work: string;
 
-  @Column('json')
-  thursday: AbsenceSubject[];
-
-  @Column('json')
-  friday: AbsenceSubject[];
+  @Column('datetime')
+  date_absence: Date;
 
   @Column('boolean', { default: false })
   justified: boolean;
 
-  @Column('varchar', { length: 255, nullable: true })
-  justified_document?: string;
+  @Column('varchar', { length: 255, nullable: true, default: null })
+  justified_document: string;
 
-  @Column('datetime', { default: () => 'CURRENT_TIMESTAMP' })
+  @Column('datetime', { nullable: true, default: null })
   justified_at: Date;
 
   @Column('boolean', { default: false })

@@ -11,6 +11,10 @@ export class AbsenceController {
   async getAllAbsence() {
     return this.absenceService.getAllAbsence();
   }
+  @Get('calendar')
+  async getCalendarAbsence(@Res() res: Response) {
+    return res.render('absence', {absence: await this.absenceService.getCalendarAbsence()});
+  }
 
   @Get(':id')
   async getAbsence(@Param('id') id: string) {

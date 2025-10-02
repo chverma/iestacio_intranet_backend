@@ -1,4 +1,4 @@
-import { IsString, ValidateNested, IsOptional } from 'class-validator';
+import { IsString, ValidateNested, IsOptional, IsDate, IsInt } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class AbsenceSubjectDto {
@@ -8,59 +8,66 @@ export class AbsenceSubjectDto {
   @IsString()
   end: string;
 
+  @IsDate()
+  date_absence: Date;
+
   @IsString()
   location: string;
 
   @IsString()
   subject: string;
+
+  @IsString()
+  work: string;
+
+  @IsInt()
+  id_user: number;
 }
 
 
 export class createAbsenceDto {
-  @ValidateNested()
-  @Type(() => AbsenceSubjectDto)
-  monday?: AbsenceSubjectDto[];
+  @IsString()
+  start: string;
 
-  @ValidateNested()
-  @Type(() => AbsenceSubjectDto)
-  tuesday?: AbsenceSubjectDto[];
+  @IsString()
+  end: string;
 
-  @ValidateNested()
-  @Type(() => AbsenceSubjectDto)
-  wednesday?: AbsenceSubjectDto[];
+  @IsDate()
+  date_absence: Date;
 
-  @ValidateNested()
-  @Type(() => AbsenceSubjectDto)
-  thursday?: AbsenceSubjectDto[];
+  @IsString()
+  location: string;
 
-  @ValidateNested()
-  @Type(() => AbsenceSubjectDto)
-  friday?: AbsenceSubjectDto[];
+  @IsString()
+  subject: string;
+
+  @IsString()
+  work: string;
+
+  @IsInt()
+  id_user: number;
+
 }
 
 export class updateAbsenceDto {
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => AbsenceSubjectDto)
-  monday?: AbsenceSubjectDto[];
+  @IsString()
+  start: string;
 
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => AbsenceSubjectDto)
-  tuesday?: AbsenceSubjectDto[];
+  @IsString()
+  end: string;
 
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => AbsenceSubjectDto)
-  wednesday?: AbsenceSubjectDto[];
+  @IsDate()
+  date_absence: Date;
 
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => AbsenceSubjectDto)
-  thursday?: AbsenceSubjectDto[];
+  @IsString()
+  location: string;
 
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => AbsenceSubjectDto)
-  friday?: AbsenceSubjectDto[];
+  @IsString()
+  subject: string;
+
+  @IsString()
+  work: string;
+
+  @IsInt()
+  id_user: number;
 }

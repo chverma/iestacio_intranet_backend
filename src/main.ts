@@ -27,6 +27,11 @@ async function bootstrap() {
     return dayArray.find(item => item.start === start && item.end === end) || null;
   });
 
+  hbs.registerHelper('formatHour', function(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+  });
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
