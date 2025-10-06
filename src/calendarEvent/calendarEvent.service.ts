@@ -76,7 +76,7 @@ export class CalendarEventService {
   }
 
   dayOfWeek: Array<string> = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']; // Sunday to Saturday
-  subjectHours = { '8': '05', '9': '00', '10': '50', '11': '15', '12': '10', '13': '05', '14': '00', '15': '10', '16': '05', '17': '00', '18': '15', '19': '10', '20': '05', '21': '10' };
+  subjectHours = { '08': '05', '09': '00', '10': '50', '11': '15', '12': '10', '13': '05', '14': '00', '15': '10', '16': '05', '17': '00', '18': '15', '19': '10', '20': '05', '21': '10' };
   @Cron('*/15 * * * * *')
   async handleCron() {
     const events = await this.eventRepository.find({ where: { processed: false }, relations: ['user'] });
@@ -85,12 +85,16 @@ export class CalendarEventService {
       console.log('Processing event:', event.id_event, event.subject, event.start);
       const startDay = this.dayOfWeek[event.start.getDay()]; // 0 (Sunday) to 6 (Saturday)
       const endDay = this.dayOfWeek[event.end.getDay()]; // 0 (Sunday) to 6 (Saturday)
-      const startHour = event.start.getHours();
-      const endHour = event.end.getHours();
+
+      const startHour = event.start.getHours().toString().padStart(2, '0');
+      const startMinute = event.start.getMinutes().toString().padStart(2, '0');
+      const endHour = event.end.getHours().toString().padStart(2, '0');
+      const endMinute = event.end.getMinutes().toString().padStart(2, '0');
+      console.log(`Event starts on ${startDay} at ${startHour}:${startMinute} and ends on ${endDay} at ${endHour}:${endMinute}`);
 
       if (startDay !== endDay) {
         // Event spans multiple days
-        //console.log(`Event starts on ${startDay} and ends on ${endDay}`);
+        console.log(`Event starts on ${startDay} and ends on ${endDay}`);
         let current = new Date(event.start);
         while (current < event.end) {
           const dayName = this.dayOfWeek[current.getDay()];
@@ -115,7 +119,11 @@ export class CalendarEventService {
             dayEnd.setHours(23, 59, 59, 999);
           }
 
-          console.log(daySchedule);
+          const dayStartHour = dayStart.getHours().toString().padStart(2, '0');
+          const dayStartMinute = dayStart.getMinutes().toString().padStart(2, '0');
+          const dayEndHour = dayEnd.getHours().toString().padStart(2, '0');
+          const dayEndMinute = dayEnd.getMinutes().toString().padStart(2, '0');
+
           if (daySchedule !== undefined) {
             // Filtra el horario del usuario para este rango
             const filteredSchedule = daySchedule.filter(elem => {
@@ -128,11 +136,11 @@ export class CalendarEventService {
               console.log(`Checking schedule from ${elem.start} to ${elem.end} against day range ${dayStart.getHours()}:${dayStart.getMinutes().toString().padStart(2, '0')} - ${dayEnd.getHours()}:${dayEnd.getMinutes().toString().padStart(2, '0')}`,
                 elem.start,
                 '>=',
-                `${dayStart.getHours()}:${dayStart.getMinutes().toString().padStart(2, '0')}`,
-                elem.start >= `${dayStart.getHours()}:${dayStart.getMinutes().toString().padStart(2, '0')}`);
+                `${dayStartHour}:${dayStartMinute}`,
+                elem.start >= `${dayStartHour}:${dayStartMinute}`);
               return (
-                elem.start >= `${dayStart.getHours().toString().padStart(2, '0')}:${dayStart.getMinutes().toString().padStart(2, '0')}` &&
-                elem.end <= `${dayEnd.getHours().toString().padStart(2, '0')}:${dayEnd.getMinutes().toString().padStart(2, '0')}`
+                elem.start >= `${dayStartHour}:${dayStartMinute}` &&
+                elem.end <= `${dayEndHour}:${dayEndMinute}`
               );
             });
 
@@ -146,10 +154,10 @@ export class CalendarEventService {
           current.setDate(current.getDate() + 1);
           current.setHours(0, 0, 0, 0);
         }
-      } else if (endHour - startHour > 1) {
+      } else if (parseInt(endHour) - parseInt(startHour) > 1) {
         // Event spans multiple hours within the same day
-        const startMinute = event.start.getMinutes();
-        const endMinute = event.end.getMinutes();
+        const startMinute = event.start.getMinutes().toString().padStart(2, '0');
+        const endMinute = event.end.getMinutes().toString().padStart(2, '0');
         const userSchedule = await this.scheduleRepository.findOne({ where: { user: { id_user: event.user.id_user } }, relations: ['user'] });
         const daySchedule = userSchedule[startDay];
         const filteredSchedule = daySchedule.filter(elem => {
@@ -173,7 +181,7 @@ export class CalendarEventService {
         // Event is within a single hour
         console.log(`Event is within a single hour: ${startHour}`);
         // Find the closest subject minute
-        event.start.setMinutes(parseInt(this.subjectHours[startHour.toString()]));
+        event.start.setMinutes(parseInt(this.subjectHours[startHour]));
         event.end.setMinutes(event.start.getMinutes() + 55)
         event.end.setHours(event.start.getHours() + 1);
 
@@ -186,7 +194,7 @@ export class CalendarEventService {
           absense_date.setHours(elem.start.split(':')[0], elem.start.split(':')[1]);
           elem.date_absence = absense_date;
           elem.work = event.body;
-          return elem.start >= `${startHour}:${event.start.getMinutes()}` && elem.end <= `${endHour}:${event.end.getMinutes()}`
+          return elem.start >= `${startHour}:${startMinute}` && elem.end <= `${endHour}:${endMinute}`
         });
 
         filteredSchedule.forEach(async elem => {
