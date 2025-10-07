@@ -80,135 +80,73 @@ export class CalendarEventService {
   @Cron('*/15 * * * * *')
   async handleCron() {
     const events = await this.eventRepository.find({ where: { processed: false }, relations: ['user'] });
-    events.forEach(async event => {
 
+    for (const event of events) {
       console.log('Processing event:', event.id_event, event.subject, event.start);
-      const startDay = this.dayOfWeek[event.start.getDay()]; // 0 (Sunday) to 6 (Saturday)
-      const endDay = this.dayOfWeek[event.end.getDay()]; // 0 (Sunday) to 6 (Saturday)
+
+      const startDayIdx = event.start.getDay();
+      const endDayIdx = event.end.getDay();
+      const startDay = this.dayOfWeek[startDayIdx];
+      const endDay = this.dayOfWeek[endDayIdx];
 
       const startHour = event.start.getHours().toString().padStart(2, '0');
       const startMinute = event.start.getMinutes().toString().padStart(2, '0');
       const endHour = event.end.getHours().toString().padStart(2, '0');
       const endMinute = event.end.getMinutes().toString().padStart(2, '0');
-      console.log(`Event starts on ${startDay} at ${startHour}:${startMinute} and ends on ${endDay} at ${endHour}:${endMinute}`);
+
+      // Obtén el horario del usuario solo una vez
+      const userSchedule = await this.scheduleRepository.findOne({ where: { user: { id_user: event.user.id_user } }, relations: ['user'] });
+
+      // Función auxiliar para crear ausencias
+      const createAbsences = async (dayName: string, rangeStart: string, rangeEnd: string, dateRef: Date) => {
+        const daySchedule = userSchedule?.[dayName];
+        if (!daySchedule) return;
+
+        const filteredSchedule = daySchedule.filter(elem => {
+          elem.id_user = event.user.id_user;
+          const absense_date = new Date(dateRef);
+          absense_date.setHours(Number(elem.start.split(':')[0]), Number(elem.start.split(':')[1]));
+          elem.date_absence = absense_date;
+          elem.work = event.body;
+          return elem.start >= rangeStart && elem.end <= rangeEnd;
+        });
+
+        for (const elem of filteredSchedule) {
+          elem.user = event.user;
+          const newAbsence = this.absenceRepository.create(elem);
+          await this.absenceRepository.save(newAbsence);
+        }
+      };
 
       if (startDay !== endDay) {
-        // Event spans multiple days
-        console.log(`Event starts on ${startDay} and ends on ${endDay}`);
+        console.log('Multi-day event detected');
+        // Evento de varios días
         let current = new Date(event.start);
-        while (current < event.end) {
+        current.setHours(0, 0, 0, 0);
+
+        while (current <= event.end) {
           const dayName = this.dayOfWeek[current.getDay()];
-          const userSchedule = await this.scheduleRepository.findOne({ where: { user: { id_user: event.user.id_user } }, relations: ['user'] });
-          const daySchedule = userSchedule[dayName];
+          let rangeStart = '00:00';
+          let rangeEnd = '23:59';
 
-
-          // Determina el rango horario para este día
-          let dayStart = new Date(current);
-          let dayEnd = new Date(current);
           if (current.toDateString() === event.start.toDateString()) {
-            // Primer día: empieza en la hora de inicio
-            dayStart = new Date(event.start);
-            dayEnd.setHours(23, 59, 59, 999);
-          } else if (current.toDateString() === event.end.toDateString()) {
-            // Último día: termina en la hora de fin
-            dayStart.setHours(0, 0, 0, 0);
-            dayEnd = new Date(event.end);
-          } else {
-            // Día intermedio: todo el día
-            dayStart.setHours(0, 0, 0, 0);
-            dayEnd.setHours(23, 59, 59, 999);
+            rangeStart = `${startHour}:${startMinute}`;
+          }
+          if (current.toDateString() === event.end.toDateString()) {
+            rangeEnd = `${endHour}:${endMinute}`;
           }
 
-          const dayStartHour = dayStart.getHours().toString().padStart(2, '0');
-          const dayStartMinute = dayStart.getMinutes().toString().padStart(2, '0');
-          const dayEndHour = dayEnd.getHours().toString().padStart(2, '0');
-          const dayEndMinute = dayEnd.getMinutes().toString().padStart(2, '0');
-
-          if (daySchedule !== undefined) {
-            // Filtra el horario del usuario para este rango
-            const filteredSchedule = daySchedule.filter(elem => {
-              elem.id_user = event.user.id_user;
-              const absense_date = new Date(current);
-              absense_date.setHours(elem.start.split(':')[0], elem.start.split(':')[1]);
-              elem.date_absence = absense_date;
-              elem.work = event.body;
-              // Solo los tramos dentro del rango de este día
-              console.log(`Checking schedule from ${elem.start} to ${elem.end} against day range ${dayStart.getHours()}:${dayStart.getMinutes().toString().padStart(2, '0')} - ${dayEnd.getHours()}:${dayEnd.getMinutes().toString().padStart(2, '0')}`,
-                elem.start,
-                '>=',
-                `${dayStartHour}:${dayStartMinute}`,
-                elem.start >= `${dayStartHour}:${dayStartMinute}`);
-              return (
-                elem.start >= `${dayStartHour}:${dayStartMinute}` &&
-                elem.end <= `${dayEndHour}:${dayEndMinute}`
-              );
-            });
-
-            for (const elem of filteredSchedule) {
-              elem.user = event.user;
-              const newAbsence = this.absenceRepository.create(elem);
-              await this.absenceRepository.save(newAbsence);
-            }
-          }
-          // Avanza al siguiente día
+          await createAbsences(dayName, rangeStart, rangeEnd, current);
           current.setDate(current.getDate() + 1);
-          current.setHours(0, 0, 0, 0);
         }
-      } else if (parseInt(endHour) - parseInt(startHour) > 1) {
-        // Event spans multiple hours within the same day
-        const startMinute = event.start.getMinutes().toString().padStart(2, '0');
-        const endMinute = event.end.getMinutes().toString().padStart(2, '0');
-        const userSchedule = await this.scheduleRepository.findOne({ where: { user: { id_user: event.user.id_user } }, relations: ['user'] });
-        const daySchedule = userSchedule[startDay];
-        const filteredSchedule = daySchedule.filter(elem => {
-          elem.id_user = event.user.id_user;
-          // Set the date_absence to the event start date with the schedule start time
-          const absense_date = new Date(event.start);
-          absense_date.setHours(elem.start.split(':')[0], elem.start.split(':')[1]);
-          elem.date_absence = absense_date;
-          elem.work = event.body;
-          return elem.start >= `${startHour}:${startMinute}` && elem.end <= `${endHour}:${endMinute}`
-        });
-
-        filteredSchedule.forEach(async elem => {
-          elem.user = event.user;
-
-          const newAbsence = this.absenceRepository.create(elem);
-          await this.absenceRepository.save(newAbsence);
-        });
-
       } else {
-        // Event is within a single hour
-        console.log(`Event is within a single hour: ${startHour}`);
-        // Find the closest subject minute
-        event.start.setMinutes(parseInt(this.subjectHours[startHour]));
-        event.end.setMinutes(event.start.getMinutes() + 55)
-        event.end.setHours(event.start.getHours() + 1);
-
-        const userSchedule = await this.scheduleRepository.findOne({ where: { user: { id_user: event.user.id_user } }, relations: ['user'] });
-        const daySchedule = userSchedule[startDay];
-        const filteredSchedule = daySchedule.filter(elem => {
-          elem.id_user = event.user.id_user;
-          // Set the date_absence to the event start date with the schedule start time
-          const absense_date = new Date(event.start);
-          absense_date.setHours(elem.start.split(':')[0], elem.start.split(':')[1]);
-          elem.date_absence = absense_date;
-          elem.work = event.body;
-          return elem.start >= `${startHour}:${startMinute}` && elem.end <= `${endHour}:${endMinute}`
-        });
-
-        filteredSchedule.forEach(async elem => {
-          elem.user = event.user;
-
-          const newAbsence = this.absenceRepository.create(elem);
-          await this.absenceRepository.save(newAbsence);
-        });
+        console.log('Single-day event detected');
+        // Evento en el mismo día
+        await createAbsences(startDay, `${startHour}:${startMinute}`, `${endHour}:${endMinute}`, event.start);
       }
 
-      // After processing, mark the event as processed
+      // Marca el evento como procesado
       await this.eventRepository.update(event.id_event, { processed: true });
-
-    });
-
+    }
   }
 }
