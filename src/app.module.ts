@@ -62,7 +62,10 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(AuthorizationMiddleware)
-      .exclude({ path: 'users/login', method: RequestMethod.POST })
+      .exclude({ path: 'calendarevent', method: RequestMethod.POST })
+      .exclude({ path: 'users', method: RequestMethod.POST })
+      .exclude({ path: 'schedule', method: RequestMethod.POST })
+      .exclude({ path: 'absence/calendar', method: RequestMethod.GET })
       .forRoutes('*');
   }
 }
