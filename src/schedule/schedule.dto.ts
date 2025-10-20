@@ -13,6 +13,9 @@ export class ScheduleSubjectDto {
 
   @IsString()
   subject: string;
+
+  @IsString()
+  group: string;
 }
 
 

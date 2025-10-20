@@ -12,6 +12,7 @@ export type ScheduleSubject = {
   end: string;
   location: string;
   subject: string;
+  group: string;
 };
 
 @Entity()

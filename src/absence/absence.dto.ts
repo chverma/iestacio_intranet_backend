@@ -18,6 +18,9 @@ export class AbsenceSubjectDto {
   subject: string;
 
   @IsString()
+  group: string;
+
+  @IsString()
   work: string;
 
   @IsInt()
@@ -42,6 +45,9 @@ export class createAbsenceDto {
   subject: string;
 
   @IsString()
+  group: string;
+
+  @IsString()
   work: string;
 
   @IsInt()
@@ -64,6 +70,9 @@ export class updateAbsenceDto {
 
   @IsString()
   subject: string;
+
+  @IsString()
+  group: string;
 
   @IsString()
   work: string;

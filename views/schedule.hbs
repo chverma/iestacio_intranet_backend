@@ -32,7 +32,7 @@
               <div style="font-size:10px;color:gray;">
             {{#if (findSlot (lookup ../../schedule day) slot)}}
               {{#with (findSlot (lookup ../../schedule day) slot)}}
-                <div><b>{{subject}}</b><br>{{location}}</div>
+                <div><b>{{group}}</b><br><b>{{subject}}</b><br>{{location}}</div>
               {{/with}}
             {{else}}
               &nbsp;

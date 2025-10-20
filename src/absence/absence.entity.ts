@@ -21,6 +21,9 @@ export class Absence {
   subject: string;
 
   @Column('varchar', { length: 255 })
+  group: string;
+
+  @Column('varchar', { length: 255 })
   location: string;
 
   @Column('varchar', { length: 255 })
