@@ -54,6 +54,70 @@ export class CalendarEventService {
     return saved;
   }
 
+  async createEventDireccio(eventDto: createEventDto): Promise<CalendarEvent> {
+    const event = this.eventRepository.create(eventDto);
+
+    // helper: normalize strings (remove diacritics, punctuation, lowercase)
+    const normalize = (s: string) =>
+      s
+        .normalize?.('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // strip diacritics
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    // try find by email first if provided
+    if (eventDto.email) {
+      const userByEmail = await this.userRepository.findOne({ where: { email: eventDto.email } });
+      if (userByEmail) {
+        event.user = userByEmail;
+        event.body = await this.parseHTMLBody(eventDto.body);
+        const saved = await this.eventRepository.save(event);
+        return saved;
+      }
+    }
+
+    // if no email match, try to extract name tokens from subject like "Óscar Esteve (GiH)"
+    const subject = eventDto.subject ?? '';
+    const cleaned = subject.replace(/\(.*?\)/g, '').trim(); // remove parenthesis content
+    if (!cleaned) {
+      throw new HttpException('No subject to parse and no email provided to find user', HttpStatus.BAD_REQUEST);
+    }
+    const tokens = normalize(cleaned).split(' ').filter(t => t.length > 0);
+
+    // fetch all users and try to match tokens against common name fields
+    const users = await this.userRepository.find();
+    let matchedUser = null;
+    for (const u of users) {
+      // build candidate full name from possible fields (tolerant)
+      const candidateParts = [
+        // common field names: adjust if your User entity uses different names
+        (u as any).firstName,
+        (u as any).lastName,
+        (u as any).name,
+        (u as any).surname,
+        (u as any).nombre,
+        (u as any).apellidos,
+      ].filter(Boolean);
+      const candidate = normalize(candidateParts.join(' '));
+      // require all tokens to be present in candidate (order independent)
+      if (tokens.every(tok => candidate.includes(tok))) {
+        matchedUser = u;
+        break;
+      }
+    }
+
+    if (!matchedUser) {
+      throw new HttpException('User not found by subject or email', HttpStatus.NOT_FOUND);
+    }
+
+    event.user = matchedUser;
+    event.body = await this.parseHTMLBody(eventDto.body);
+    const saved = await this.eventRepository.save(event);
+    return saved;
+  }
+
   async updateEvent(id: number, eventDto: updateEventDto): Promise<CalendarEvent> {
     const event = await this.eventRepository.findOne({ where: { id_event: id } });
     if (!event) {

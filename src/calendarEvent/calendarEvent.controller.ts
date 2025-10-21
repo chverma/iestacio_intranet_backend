@@ -42,6 +42,9 @@ export class CalendarEventController {
 
   @Post()
   async createEvent(@Body() eventDto: createEventDto) {
+    if (eventDto.email.startsWith(process.env.DIRECCIO_EMAIL_PREFIX || '')) {
+      return this.calendarEventService.createEventDireccio(eventDto);
+    }
     return this.calendarEventService.createEvent(eventDto);
   }
 
