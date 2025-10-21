@@ -38,13 +38,13 @@ export class AbsenceService {
 
   async getCalendarAbsence(): Promise<Absence[]> {
     const now = new Date();
-    const oneHourBefore = new Date(now.getTime() - 60 * 60 * 1000);
-    const oneHourAfter = new Date(now.getTime() + 60 * 60 * 1000);
+    const hoursBefore = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+    const hoursAfter = new Date(now.getTime() + 3 * 60 * 60 * 1000);
     return this.absenceRepository.createQueryBuilder('absence')
       .leftJoinAndSelect('absence.user', 'user')
       .where('absence.date_absence BETWEEN :start AND :end', {
-        start: oneHourBefore,
-        end: oneHourAfter,
+        start: hoursBefore,
+        end: hoursAfter,
       })
       .getMany();
   }
