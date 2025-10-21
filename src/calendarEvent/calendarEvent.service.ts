@@ -89,10 +89,19 @@ export class CalendarEventService {
       const startDay = this.dayOfWeek[startDayIdx];
       const endDay = this.dayOfWeek[endDayIdx];
 
+      // Ensure minimum duration of 55 minutes. If shorter, extend end to start + 55min.
+      const MIN_DURATION_MS = 55 * 60 * 1000;
+      // Use a local effectiveEnd so we don't mutate the DB entity unintentionally
+      let effectiveEnd = new Date(event.end);
+      if ((effectiveEnd.getTime() - event.start.getTime()) < MIN_DURATION_MS) {
+        effectiveEnd = new Date(event.start.getTime() + MIN_DURATION_MS);
+      }
+
       const startHour = event.start.getHours().toString().padStart(2, '0');
       const startMinute = event.start.getMinutes().toString().padStart(2, '0');
-      const endHour = event.end.getHours().toString().padStart(2, '0');
-      const endMinute = event.end.getMinutes().toString().padStart(2, '0');
+      // use effectiveEnd for calculations below
+      const endHour = effectiveEnd.getHours().toString().padStart(2, '0');
+      let endMinute = effectiveEnd.getMinutes().toString().padStart(2, '0');
 
       // Obtén el horario del usuario solo una vez
       const userSchedule = await this.scheduleRepository.findOne({ where: { user: { id_user: event.user.id_user } }, relations: ['user'] });
@@ -142,6 +151,7 @@ export class CalendarEventService {
       } else {
         console.log('Single-day event detected');
         // Evento en el mismo día
+        console.log(`Creating absences for ${startDay} from ${startHour}:${startMinute} to ${endHour}:${endMinute}`);
         await createAbsences(startDay, `${startHour}:${startMinute}`, `${endHour}:${endMinute}`, event.start);
       }
 
