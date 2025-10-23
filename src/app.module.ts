@@ -13,12 +13,10 @@ import { AuthorizationMiddleware } from './authorization.middleware';
 import { AuthService } from './Autentication/auth.service';
 import { FilesModule } from './files/files.module';
 import { ScheduleModule } from './schedule/schedule.module';
-import { Schedule } from './schedule/schedule.entity';
 import { AbsenceModule } from './absence/absence.module';
-import { Absence } from './absence/absence.entity';
 import { CalendarEventModule } from './calendarEvent/calendarEvent.module';
-import { CalendarEvent } from './calendarEvent/calendarEvent.entity';
 import { ScheduleModule as ScheduleCron } from '@nestjs/schedule';
+import { AuthModule } from './Autentication/auth.module';
 
 @Module({
   imports: [
@@ -37,12 +35,6 @@ import { ScheduleModule as ScheduleCron } from '@nestjs/schedule';
         username: configService.get('MYSQL_USER'),
         password: configService.get('MYSQL_PASSWORD'),
         database: configService.get('MYSQL_DATABASE'),
-        /*entities: [
-          User,
-          Schedule,
-          Absence,
-          CalendarEvent
-        ],*/
         autoLoadEntities: true,
         synchronize: true,
       }),
@@ -53,6 +45,7 @@ import { ScheduleModule as ScheduleCron } from '@nestjs/schedule';
     FilesModule,
     ScheduleModule,
     AbsenceModule,
+    AuthModule,
     CalendarEventModule
   ],
   controllers: [],
@@ -64,6 +57,8 @@ export class AppModule implements NestModule {
       .apply(AuthorizationMiddleware)
       .exclude({ path: 'calendarevent', method: RequestMethod.POST })
       .exclude({ path: 'users', method: RequestMethod.POST })
+      .exclude({ path: 'auth/login', method: RequestMethod.GET })
+      .exclude({ path: 'auth/login', method: RequestMethod.POST })
       .exclude({ path: 'schedule', method: RequestMethod.POST })
       .exclude({ path: 'absence/calendar', method: RequestMethod.GET })
       .forRoutes('*');

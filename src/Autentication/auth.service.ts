@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/users/users.entity';
+import { User } from '../users/users.entity';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { Response } from 'express';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
@@ -11,7 +13,7 @@ export class AuthService {
     private userRepository: Repository<User>,
   ) {}
 
-  async generateToken(id_user: number): Promise<string> {
+  async generateToken(id_user: number, res?: Response): Promise<string> {
     const token = uuidv4();
     const expirationDate = new Date();
     expirationDate.setHours(expirationDate.getHours() + 1);
@@ -20,6 +22,17 @@ export class AuthService {
       token,
       tokenExpiration: expirationDate,
     });
+
+    // Si nos pasan la Response, creamos la cookie aquí
+    if (res) {
+      const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax' as const,
+        maxAge: 14 * 24 * 60 * 60 * 1000, // 14 días
+      };
+      res.cookie('auth_token', token, cookieOptions);
+    }
 
     return token;
   }
@@ -40,10 +53,36 @@ export class AuthService {
     return true;
   }
 
-  async clearToken(id_user: number): Promise<void> {
+  async clearToken(id_user: number, res?: Response): Promise<void> {
     await this.userRepository.update(id_user, {
       token: null,
       tokenExpiration: null,
     });
+
+    if (res) {
+      // Intentar limpiar la cookie en la respuesta
+      res.clearCookie('auth_token');
+    }
+  }
+
+    async validateUser(email: string, password: string, res: Response): Promise<User | null> {
+    const user = await this.userRepository.findOne({ where: { 'email': email, 'role': 0 } });
+    if (user && (await bcrypt.compare(password, user.password))) {
+      await this.generateToken(user.id_user, res);
+      return user;
+    }
+    return null;
+  }
+
+  async getUserByToken(token: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { token: token },
+    });
+
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    return user;
   }
 }

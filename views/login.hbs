@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Iniciar sesión</title>
+    <style>
+        :root{
+            --bg:#f5f7fb;
+            --card:#ffffff;
+            --accent:#2563eb;
+            --muted:#6b7280;
+            --danger:#dc2626;
+        }
+        html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+        body{display:flex;align-items:center;justify-content:center;background:var(--bg);color:#111;}
+        .container{width:100%;max-width:420px;padding:24px;}
+        .card{background:var(--card);border-radius:12px;padding:28px;box-shadow:0 6px 20px rgba(15,23,42,0.08);}
+        h1{margin:0 0 10px 0;font-size:20px;}
+        p.lead{margin:0 0 18px 0;color:var(--muted);font-size:14px;}
+        label{display:block;font-size:13px;margin-bottom:6px;color:#111;font-weight:600;}
+        .field{margin-bottom:14px;}
+        input[type="text"],input[type="password"]{
+            width:100%;padding:10px 12px;border:1px solid #e6e9ef;border-radius:8px;font-size:14px;
+            box-sizing:border-box;
+        }
+        .row{display:flex;gap:10px;align-items:center;justify-content:space-between;}
+        .actions{display:flex;gap:8px;align-items:center;margin-top:12px;}
+        button.primary{
+            background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:600;
+        }
+        .secondary{background:transparent;border:1px solid #e6e9ef;padding:9px 12px;border-radius:8px;cursor:pointer;}
+        .help{font-size:13px;color:var(--muted);}
+        .error{color:var(--danger);font-size:13px;margin-bottom:12px;}
+        .flash{background:#fff3f2;border:1px solid #ffd1cf;color:var(--danger);padding:10px;border-radius:8px;margin-bottom:12px;}
+        .small{font-size:12px;color:var(--muted);}
+        .show-pass{background:transparent;border:none;color:var(--accent);cursor:pointer;font-size:13px;padding:6px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card" role="main" aria-labelledby="login-title">
+            <h1 id="login-title">Iniciar sesión</h1>
+            <p class="lead">Introduce tu email y contraseña para acceder al panel.</p>
+
+            {{!-- Mensajes flash --}}
+            {{#if flash.error}}
+                <div class="flash" role="alert">{{flash.error}}</div>
+            {{/if}}
+
+            {{!-- Errores de validación --}}
+            {{#if errors}}
+                <div class="error" role="alert">
+                    {{#each errors}}
+                        <div>{{this}}</div>
+                    {{/each}}
+                </div>
+            {{/if}}
+
+            <form action="login" method="post" autocomplete="on" novalidate>
+                {{{csrfToken}}}
+
+                <div class="field">
+                    <label for="email">Email</label>
+                    <input id="email" name="email" type="text" placeholder="ej. juan.perez@email.com" value="{{email}}" required aria-required="true" autocomplete="email" />
+                </div>
+
+                <div class="field">
+                    <label for="password">Contraseña</label>
+                    <div style="display:flex;gap:8px;">
+                        <input id="password" name="password" type="password" placeholder="Contraseña" required aria-required="true" autocomplete="current-password" style="flex:1;" />
+                        <button type="button" class="show-pass" aria-pressed="false" aria-label="Mostrar contraseña" onclick="togglePassword()">Mostrar</button>
+                    </div>
+                </div>
+
+                <div class="row small" style="margin-bottom:8px;">
+                    <label style="display:flex;align-items:center;gap:8px;">
+                        <input type="checkbox" name="remember" {{#if remember}}checked{{/if}} />
+                        <span>Recordarme</span>
+                    </label>
+                    <a href="forgot" class="small">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="primary">Entrar</button>
+                    <a href="/" class="secondary" role="button">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Toggle visibilidad de contraseña
+        function togglePassword(){
+            var pwd = document.getElementById('password');
+            var btn = event.currentTarget || event.target;
+            if(!pwd) return;
+            if(pwd.type === 'password'){ pwd.type = 'text'; btn.textContent = 'Ocultar'; btn.setAttribute('aria-pressed','true'); }
+            else { pwd.type = 'password'; btn.textContent = 'Mostrar'; btn.setAttribute('aria-pressed','false'); }
+        }
+
+        // Enfocar primer campo si está vacío
+        (function(){ var u=document.getElementById('username'); if(u) u.focus(); })();
+    </script>
+</body>
+</html>

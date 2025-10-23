@@ -34,16 +34,41 @@ export class AuthorizationMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
     // Token validation (optional)
     if (process.env.ENABLE_TOKEN_VALIDATION === 'true') {
+      // Try Authorization header first, then cookie 'auth_token'
+      let token: string | undefined;
+
       const authHeader = req.headers['authorization'] as string | undefined;
-      if (!authHeader) {
+      if (authHeader) {
+        const parts = authHeader.split(' ');
+        token = parts.length > 1 ? parts[1] : parts[0];
+      }
+
+      // If no header token, try cookie-parser's req.cookies.auth_token
+      if (!token) {
+        token = (req as any).cookies?.auth_token;
+      }
+
+      // If still no token, parse Cookie header as fallback
+      if (!token && req.headers.cookie) {
+        const match = req.headers.cookie
+          .split(';')
+          .map(s => s.trim())
+          .find(c => c.startsWith('auth_token='));
+        if (match) {
+          token = decodeURIComponent(match.split('=')[1] || '');
+        }
+      }
+
+      if (!token) {
         throw new UnauthorizedException('Token no encontrado');
       }
-      const parts = authHeader.split(' ');
-      const token = parts.length > 1 ? parts[1] : parts[0];
+
       const isValid = await this.authService.validateToken(token);
       if (!isValid) {
         throw new UnauthorizedException('Token inválido o expirado');
       }
+
+      console.log("TOKEN VALIDATED IN MIDDLEWARE:", token);
     }
 
     // IP validation (optional)
