@@ -1,0 +1,77 @@
+/* layout */
+.container { max-width: 1200px; margin: 0 auto; padding: 1.25rem; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; color: #212529; }
+
+/* nav pills */
+#admin-pills { gap: .5rem; display:flex; flex-wrap:wrap; }
+#admin-pills .nav-link { border-radius: .375rem; padding: .35rem .75rem; background: transparent; color: #495057; border: 1px solid transparent; }
+#admin-pills .nav-link.active { background: #0d6efd; color: #fff; border-color: rgba(13,110,253,.25); }
+
+/* tabs */
+ /* Style the tab */
+.tab {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+}
+
+/* Style the buttons that are used to open the tab content */
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+} 
+
+.tab-pane { padding-top: .75rem; }
+.tab-pane.show.active { display: block; }
+
+/* forms / controls */
+.form-control, .form-select { height: calc(1.8em + .6rem); padding: .3rem .5rem; font-size: .9rem; border: 1px solid #ced4da; border-radius: .375rem; }
+.form-control-sm { font-size: .85rem; padding: .25rem .45rem; }
+
+/* table */
+.table { width: 100%; border-collapse: collapse; margin-bottom: .5rem; font-size: .9rem; }
+.table th, .table td { padding: .5rem .6rem; border-bottom: 1px solid #e9ecef; vertical-align: middle; }
+.table thead th { background: #f8f9fa; font-weight: 600; }
+.table-sm th, .table-sm td { padding: .35rem .45rem; }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; gap: .4rem; padding: .35rem .6rem; font-size: .85rem; border-radius: .375rem; border: 1px solid transparent; cursor: pointer; }
+.btn-primary { background: #0d6efd; color: #fff; }
+.btn-outline-secondary { background: transparent; color: #495057; border-color: #6c757d; }
+.btn-outline-danger { background: transparent; color: #dc3545; border-color: #dc3545; }
+
+/* small helpers */
+.text-end { text-align: right; }
+.text-muted { color: #6c757d; }
+.small { font-size: .85rem; }
+
+/* responsive: stack search+limit on small screens */
+@media (max-width: 640px) {
+  .d-flex.gap-2 { flex-direction: column; gap: .5rem; }
+  #admin-pills { justify-content: flex-start; }
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .btn { width: 100%; justify-content: center; }
+  .text-end { text-align: left; }
+}
