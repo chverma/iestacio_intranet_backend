@@ -1,4 +1,3 @@
-
 function openTab(evt, tabName) {
   // ocultar todos los tabcontent (aquí usamos las tab-pane existentes)
   const tabcontents = document.querySelectorAll('.tab-pane');
@@ -57,23 +56,44 @@ document.addEventListener('DOMContentLoaded', function () {
             return { items: [], total: 0 };
         }
 
+        // helper para eliminar (pregunta confirmación y llama DELETE)
+        async function deleteItem(entity, id) {
+          if (!id) return;
+          if (!confirm('Segur que vols eliminar aquest registre?')) return;
+          try {
+            const res = await fetch(`/${entity}/${id}`, {
+              method: 'DELETE',
+              credentials: 'same-origin',
+            });
+            if (!res.ok) {
+              const text = await res.text().catch(()=>null);
+              alert('Error al eliminar: ' + (text || res.status));
+              return;
+            }
+            // Recargar la sección actual de forma simple
+            location.reload();
+          } catch (err) {
+            console.error('Delete error', err);
+            alert('Error al eliminar');
+          }
+        }
+
         // Render helpers para cada sección:
         function renderUsers(items) {
             const tbody = document.getElementById('users-tbody');
             tbody.innerHTML = '';
             for (const u of items) {
+                const id = u.id_user ?? u.id ?? '';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${u.id_user ?? ''}</td>
+                    <td>${id}</td>
                     <td>${u.name ?? ''}</td>
                     <td>${u.email ?? ''}</td>
                     <td>${u.role ?? ''}</td>
-                    <td class="text-end">
-                        <button class="btn btn-sm btn-outline-secondary">Editar</button>
-                        <button class="btn btn-sm btn-outline-danger">Eliminar</button>
-                    </td>
                 `;
                 tbody.appendChild(tr);
+                const del = tr.querySelector('.delete-btn');
+                if (del) del.addEventListener('click', () => deleteItem('users', id));
             }
         }
 
@@ -81,19 +101,22 @@ document.addEventListener('DOMContentLoaded', function () {
             const tbody = document.getElementById('absences-tbody');
             tbody.innerHTML = '';
             for (const a of items) {
+                const id = a.id_absence ?? a.id ?? '';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${a.id_absence ?? ''}</td>
-                    <td>${a.user.name + ' ' + a.user.surname ?? ''}</td>
-                    <td>${new Date(a.date_absence).toLocaleString() ?? ''}</td>
-                    <td>${a.subject}</td>
+                    <td>${id}</td>
+                    <td>${(a.user?.name ?? '') + ' ' + (a.user?.surname ?? '')}</td>
+                    <td>${a.start ? new Date(a.start).toLocaleString() : (a.date_absence ? new Date(a.date_absence).toLocaleString() : '')}</td>
                     <td>${a.location ?? ''}</td>
+                    <td>${a.subject ?? ''}</td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-outline-secondary">Editar</button>
-                        <button class="btn btn-sm btn-outline-danger">Eliminar</button>
+                        <!--button class="btn btn-sm btn-outline-secondary">Editar</button-->
+                        <button class="btn btn-sm btn-outline-danger delete-btn">Eliminar</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
+                const del = tr.querySelector('.delete-btn');
+                if (del) del.addEventListener('click', () => deleteItem('absence', id));
             }
         }
 
@@ -101,19 +124,25 @@ document.addEventListener('DOMContentLoaded', function () {
             const tbody = document.getElementById('events-tbody');
             tbody.innerHTML = '';
             for (const e of items) {
+                const id = e.id_event ?? e.id ?? '';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${e.id_event ?? ''}</td>
-                    <td>${e.subject ?? ''}</td>
-                    <td>${new Date(e.start).toLocaleString() ?? ''}</td>
-                    <td>${new Date(e.end).toLocaleString() ?? ''}</td>
-                    <td>${e.user.name + ' ' + e.user.surname ?? ''}</td>
+                    <td>${id}</td>
+                    <td>${e.subject ?? e.title ?? ''}</td>
+                    <td>${e.start ? new Date(e.start).toLocaleString() : ''}</td>
+                    <td>${e.end ? new Date(e.end).toLocaleString() : ''}</td>
+                    <td>${(e.user?.name ?? '') + ' ' + (e.user?.surname ?? '')}</td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-outline-secondary">Editar</button>
-                        <button class="btn btn-sm btn-outline-danger">Eliminar</button>
+                        <!--button class="btn btn-sm btn-outline-secondary">Editar</button-->
+                        <button class="btn btn-sm btn-outline-danger delete-btn">Eliminar</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
+                const del = tr.querySelector('.delete-btn');
+                if (del) {
+                  // asumir ruta /calendarevent/:id ; ajusta si tu API tiene otra ruta
+                  del.addEventListener('click', () => deleteItem('calendarevent', id));
+                }
             }
         }
 
