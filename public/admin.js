@@ -78,7 +78,79 @@ document.addEventListener('DOMContentLoaded', function () {
           }
         }
 
-        // Render helpers para cada sección:
+        // helper modal functions
+        function openEditModal(entity, id, item) {
+          try {
+            const modal = document.getElementById('editModal');
+            if (!modal) return;
+            document.getElementById('edit-entity').textContent = entity;
+            document.getElementById('edit-id').textContent = id;
+            const ta = document.getElementById('edit-json');
+            ta.value = JSON.stringify(item, null, 2);
+            modal.style.display = 'flex';
+            // focus/select textarea
+            ta.focus();
+            ta.select();
+          } catch (err) {
+            console.error('openEditModal', err);
+          }
+        }
+        function closeEditModal() {
+          const modal = document.getElementById('editModal');
+          if (!modal) return;
+          modal.style.display = 'none';
+        }
+
+        // submit edited JSON via PUT
+        async function submitEdit() {
+          const entity = document.getElementById('edit-entity').textContent;
+          const id = document.getElementById('edit-id').textContent;
+          const ta = document.getElementById('edit-json');
+          let body;
+          try {
+            body = JSON.parse(ta.value);
+          } catch (err) {
+            alert('JSON inválido: ' + err.message);
+            return;
+          }
+          try {
+            const res = await fetch(`/${entity}/${id}`, {
+              method: 'PUT',
+              credentials: 'same-origin',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(body),
+            });
+            if (!res.ok) {
+              const text = await res.text().catch(()=>null);
+              alert('Error al guardar: ' + (text || res.status));
+              return;
+            }
+            closeEditModal();
+            // recargar para ver cambios
+            location.reload();
+          } catch (err) {
+            console.error('submitEdit', err);
+            alert('Error al guardar');
+          }
+        }
+
+        // wire modal buttons after DOM ready
+        document.addEventListener('DOMContentLoaded', function () {
+          const closeBtn = document.getElementById('edit-modal-close');
+          const cancelBtn = document.getElementById('edit-modal-cancel');
+          const saveBtn = document.getElementById('edit-modal-save');
+          if (closeBtn) closeBtn.addEventListener('click', closeEditModal);
+          if (cancelBtn) cancelBtn.addEventListener('click', closeEditModal);
+          if (saveBtn) saveBtn.addEventListener('click', submitEdit);
+
+          // click fuera del cuadro para cerrar
+          const modal = document.getElementById('editModal');
+          if (modal) modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeEditModal();
+          });
+        });
+
+        // Render helpers para cada sección: añadir botón Edit y listener que abre modal
         function renderUsers(items) {
             const tbody = document.getElementById('users-tbody');
             tbody.innerHTML = '';
@@ -90,10 +162,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${u.name ?? ''}</td>
                     <td>${u.email ?? ''}</td>
                     <td>${u.role ?? ''}</td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-secondary edit-btn">Editar</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
-                const del = tr.querySelector('.delete-btn');
-                if (del) del.addEventListener('click', () => deleteItem('users', id));
+                const edit = tr.querySelector('.edit-btn');
+                if (edit) edit.addEventListener('click', () => openEditModal('users', id, u));
             }
         }
 
@@ -110,11 +185,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${a.location ?? ''}</td>
                     <td>${a.subject ?? ''}</td>
                     <td class="text-end">
-                        <!--button class="btn btn-sm btn-outline-secondary">Editar</button-->
-                        <button class="btn btn-sm btn-outline-danger delete-btn">Eliminar</button>
+                      <button class="btn btn-sm btn-outline-secondary edit-btn">Editar</button>
+                      <button class="btn btn-sm btn-outline-danger delete-btn">Eliminar</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
+                const edit = tr.querySelector('.edit-btn');
+                if (edit) edit.addEventListener('click', () => openEditModal('absence', id, a));
                 const del = tr.querySelector('.delete-btn');
                 if (del) del.addEventListener('click', () => deleteItem('absence', id));
             }
@@ -133,16 +210,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${e.end ? new Date(e.end).toLocaleString() : ''}</td>
                     <td>${(e.user?.name ?? '') + ' ' + (e.user?.surname ?? '')}</td>
                     <td class="text-end">
-                        <!--button class="btn btn-sm btn-outline-secondary">Editar</button-->
-                        <button class="btn btn-sm btn-outline-danger delete-btn">Eliminar</button>
+                      <button class="btn btn-sm btn-outline-secondary edit-btn">Editar</button>
+                      <button class="btn btn-sm btn-outline-danger delete-btn">Eliminar</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
+                const edit = tr.querySelector('.edit-btn');
+                if (edit) edit.addEventListener('click', () => openEditModal('calendarevent', id, e));
                 const del = tr.querySelector('.delete-btn');
-                if (del) {
-                  // asumir ruta /calendarevent/:id ; ajusta si tu API tiene otra ruta
-                  del.addEventListener('click', () => deleteItem('calendarevent', id));
-                }
+                if (del) del.addEventListener('click', () => deleteItem('calendarevent', id));
             }
         }
 
