@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Delete, HttpException, HttpStatus, Res, Render } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Delete, HttpException, HttpStatus, Res, Render, Query } from '@nestjs/common';
 import { AbsenceService } from './absence.service';
 import { createAbsenceDto, updateAbsenceDto } from './absence.dto';
 import { Response } from 'express';
@@ -7,13 +7,44 @@ import { Response } from 'express';
 export class AbsenceController {
   constructor(private readonly absenceService: AbsenceService) {}
 
+  // helper to validate and normalize from/to query params
+  private parseDateRange(from?: string, to?: string): { fromIso: string | null; toIso: string | null } {
+    let fromIso: string | null = null;
+    let toIso: string | null = null;
+
+    if (from) {
+      const d = new Date(from);
+      if (isNaN(d.getTime())) {
+        throw new HttpException('Invalid "from" date', HttpStatus.BAD_REQUEST);
+      }
+      fromIso = d.toISOString();
+    }
+    if (to) {
+      const d = new Date(to);
+      if (isNaN(d.getTime())) {
+        throw new HttpException('Invalid "to" date', HttpStatus.BAD_REQUEST);
+      }
+      toIso = d.toISOString();
+    }
+    return { fromIso, toIso };
+  }
+
   @Get()
-  async getAllAbsence() {
-    return this.absenceService.getAllAbsence();
+  async getAllAbsence(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    const { fromIso, toIso } = this.parseDateRange(from, to);
+    return this.absenceService.getAllAbsence({ from: fromIso, to: toIso });
   }
   @Get('calendar')
-  async getCalendarAbsence(@Res() res: Response) {
-    return res.render('absence', {absence: await this.absenceService.getCalendarAbsence()});
+  async getCalendarAbsence(
+    @Res() res: Response,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    const { fromIso, toIso } = this.parseDateRange(from, to);
+    return res.render('absence', { absence: await this.absenceService.getCalendarAbsence({ from: fromIso, to: toIso }) });
   }
 
   @Get(':id')
@@ -26,22 +57,34 @@ export class AbsenceController {
   }
 
   @Get('user/:id')
-  async getAbsenceByUserId(@Param('id') id: string) {
+  async getAbsenceByUserId(
+    @Param('id') id: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
     const userId = parseInt(id);
     if (isNaN(userId)) {
       throw new HttpException('Invalid user ID', HttpStatus.BAD_REQUEST);
     }
-
-    return this.absenceService.getAbsenceByUserId(userId);
+    const { fromIso, toIso } = this.parseDateRange(from, to);
+    return this.absenceService.getAbsenceByUserId(userId, { from: fromIso, to: toIso });
   }
 
   @Get('user/:id/absence')
-  async getCalendarAbsenceByUserId(@Param('id') id: string, @Res() res: Response) {
+  async getCalendarAbsenceByUserId(
+    @Param('id') id: string,
+    @Res() res: Response,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
     const userId = parseInt(id);
     if (isNaN(userId)) {
       throw new HttpException('Invalid user ID', HttpStatus.BAD_REQUEST);
     }
-    return res.render('calendar', {absence: await this.absenceService.getCalendarAbsenceByUserId(userId, res)});
+    const { fromIso, toIso } = this.parseDateRange(from, to);
+    return res.render('calendar', {
+      absence: await this.absenceService.getCalendarAbsenceByUserId(userId, { from: fromIso, to: toIso }),
+    });
   }
 
   @Post()

@@ -32,6 +32,11 @@ async function bootstrap() {
     return date.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
   });
 
+  hbs.registerHelper('formatDay', function(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: '2-digit', month: '2-digit', year: 'numeric' });
+  });
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

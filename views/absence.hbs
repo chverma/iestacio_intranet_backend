@@ -8,10 +8,10 @@
 </head>
 
 <body>
-  <h2>Faltes de hui +- 1 hora</h2>
   <table border="1" cellpadding="8" style="border-collapse:collapse; width:100%; text-align:center;">
     <thead>
       <tr>
+        <th>Dia</th>
         <th>Hora</th>
         <th>Assignatura</th>
         <th>Grup</th>
@@ -24,7 +24,9 @@
       {{#each absence}}
       <tr>
         <td>
-          {{!-- Extrae la hora local de Madrid --}}
+          {{formatDay date_absence}}
+        </td>
+        <td>
           {{formatHour date_absence}}
         </td>
         <td>{{subject}}</td>
