@@ -63,7 +63,7 @@ export class CalendarEventService {
         .normalize?.('NFD')
         .replace(/[\u0300-\u036f]/g, '') // strip diacritics
         .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/[^a-z0-9\s-]/g, ' ')
         .replace(/\s+/g, ' ')
         .trim();
 
@@ -78,41 +78,152 @@ export class CalendarEventService {
       }
     }
 
-    // if no email match, try to extract name tokens from subject like "Óscar Esteve (GiH)"
+    // if no email match, parse subject for name tokens
     const subject = eventDto.subject ?? '';
     const cleaned = subject.replace(/\(.*?\)/g, '').trim(); // remove parenthesis content
     if (!cleaned) {
       throw new HttpException('No subject to parse and no email provided to find user', HttpStatus.BAD_REQUEST);
     }
-    const tokens = normalize(cleaned).split(' ').filter(t => t.length > 0);
 
-    // fetch all users and try to match tokens against common name fields
+    // STOP_WORDS: ruido frecuente en subjects (aula, cursos, abreviaturas, etc.)
+    const STOP_WORDS = new Set([
+      'aula','sal','sala','class','a','el','la','los','les','de','del','en','para','per','al',
+      'bat','batx','batxillerat','1r','2n','3r','4t','pa','p.a','pa.','1er','2n','3n',
+      'sr','sra','srta','prof','professor','curso','curs','falt', 'falta','faltan'
+    ]);
+
+    // Known nicknames / variants mapping
+    const NICKNAMES: Record<string,string> = {
+      'ximo': 'joaquin',
+      'xoan': 'joaquin',
+      'joaquin': 'joaquin',
+      'joaquim': 'joaquin',
+      'pepe': 'jose',
+      'josemaria': 'jose maria',
+      'mariajose': 'maria jose',
+      'm.': 'maria',
+      'mjose': 'maria jose',
+      'mj': 'maria jose',
+      'm': 'maria', // para inicial "M." o "M"
+      // add more mappings as needed
+    };
+
+    // produce candidate tokens: only alphabetic tokens, remove stop words and short noise
+    const rawTokens = normalize(cleaned).split(' ').filter(Boolean);
+    let tokens = rawTokens
+      .filter(t => /^[a-z]+$/.test(t))          // keep alpha-only tokens
+      .filter(t => !STOP_WORDS.has(t))          // remove noise
+      .slice(0, 8);                             // cap tokens
+
+    // expand tokens with nickname canonical forms and initials
+    const expanded = [];
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+      if (NICKNAMES[t]) {
+        for (const w of NICKNAMES[t].split(' ')) expanded.push(w);
+      }
+      expanded.push(t);
+      // Si es inicial y la siguiente es "jose" o "jose" abreviado, añade "maria jose"
+      if (
+        t === 'm' &&
+        (tokens[i + 1] === 'jose' || tokens[i + 1] === 'j')
+      ) {
+        expanded.push('maria');
+        expanded.push('jose');
+        expanded.push('maria jose');
+      }
+    }
+    tokens = Array.from(new Set(expanded)).filter(Boolean);
+
+    // fetch users and score matches
     const users = await this.userRepository.find();
-    let matchedUser = null;
+    let best: { user: User; score: number } | null = null;
+
     for (const u of users) {
-      // build candidate full name from possible fields (tolerant)
-      const candidateParts = [
-        // common field names: adjust if your User entity uses different names
-        (u as any).firstName,
-        (u as any).lastName,
+      // build array of name parts from likely fields
+      const rawParts = [
         (u as any).name,
         (u as any).surname,
+        (u as any).email,
         (u as any).nombre,
         (u as any).apellidos,
-      ].filter(Boolean);
-      const candidate = normalize(candidateParts.join(' '));
-      // require all tokens to be present in candidate (order independent)
-      if (tokens.every(tok => candidate.includes(tok))) {
-        matchedUser = u;
-        break;
+        (u as any).firstName,
+        (u as any).lastName,
+        (u as any).nombre_completo,
+      ].filter(Boolean).map(x => String(x));
+
+      const parts = rawParts.map(x => normalize(x));
+      const joined = parts.join(' ');
+      let score = 0;
+
+      for (const tok of tokens) {
+        if (!tok) continue;
+        if (tok.length === 1) {
+          // initial: check if any name part starts with this initial
+          if (parts.some(p => p.split(' ').some(seg => seg.startsWith(tok)))) score += 1;
+        } else {
+          // prefer exact word matches
+          const exactWordMatch = parts.some(p => p.split(' ').includes(tok));
+          if (exactWordMatch) score += 4;
+          else if (joined.includes(tok)) score += 2;
+        }
+
+        // bonus if token matches an entire surname field
+        const surnameMatch = rawParts.slice(1).some(raw => normalize(String(raw)).split(' ').includes(tok));
+        if (surnameMatch) score += 2;
+      }
+
+      // email local-part boost
+      const emailLocal = (u.email ?? '').split('@')[0] ?? '';
+      if (emailLocal && tokens.some(tok => emailLocal.includes(tok))) score += 1;
+
+      // bonus: si el nombre completo contiene "maria jose" y tokens incluye ambos
+      if (
+        joined.includes('maria jose') &&
+        tokens.includes('maria') &&
+        tokens.includes('jose')
+      ) {
+        score += 6;
+      }
+
+      if (!best || score > best.score) best = { user: u, score };
+    }
+
+    // Adaptive threshold: require sensible confidence
+    const significantTokenCount = Math.max(1, tokens.filter(t => t.length > 1).length);
+    const threshold = Math.max(2, Math.ceil(significantTokenCount * 0.6));
+
+    // fallback attempts if best not confident:
+    if (!best || best.score < threshold) {
+      // try to match by surname exact token
+      for (const t of tokens) {
+        const match = users.find(u => {
+          const surname = ((u as any).surname ?? (u as any).lastName ?? (u as any).apellidos ?? '').toString();
+          return surname && normalize(surname).includes(t);
+        });
+        if (match) { best = { user: match, score: threshold }; break; }
       }
     }
 
-    if (!matchedUser) {
+    if (!best || best.score < 1) {
+      // as last resort, try mapping nicknames tokens to users by comparing normalized full names
+      for (const [nick, canonical] of Object.entries(NICKNAMES)) {
+        if (tokens.includes(nick)) {
+          const canParts = canonical.split(' ');
+          const match = users.find(u => {
+            const fullname = normalize([ (u as any).name, (u as any).surname, (u as any).nombre, (u as any).apellidos ].filter(Boolean).join(' '));
+            return canParts.every(cp => fullname.includes(cp));
+          });
+          if (match) { best = { user: match, score: threshold }; break; }
+        }
+      }
+    }
+
+    if (!best || best.score < 1) {
       throw new HttpException('User not found by subject or email', HttpStatus.NOT_FOUND);
     }
 
-    event.user = matchedUser;
+    event.user = best.user;
     event.body = await this.parseHTMLBody(eventDto.body);
     const saved = await this.eventRepository.save(event);
     return saved;
