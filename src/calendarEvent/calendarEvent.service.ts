@@ -89,7 +89,8 @@ export class CalendarEventService {
     const STOP_WORDS = new Set([
       'aula','sal','sala','class','a','el','la','los','les','de','del','en','para','per','al',
       'bat','batx','batxillerat','1r','2n','3r','4t','pa','p.a','pa.','1er','2n','3n',
-      'sr','sra','srta','prof','professor','curso','curs','falt', 'falta','faltan'
+      'sr','sra','srta','prof','professor','curso','curs','falt', 'falta','faltan',
+      'fpb','fpb1','fpb2','eso','eso1','eso2','eso3','eso4'
     ]);
 
     // Known nicknames / variants mapping
