@@ -103,7 +103,8 @@ describe('UsersService', () => {
   });
   describe('getAllUser', () => {
     it('should return an array of users when xml is not provided', async () => {
-      const result = await userService.getAllUser();
+      // TODO: Change params to test pagination
+      const result = await userService.getAllUser(1, 10);
       expect(Array.isArray(result)).toBe(true);
     });
   });

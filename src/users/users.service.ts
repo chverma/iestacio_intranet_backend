@@ -12,9 +12,24 @@ export class UsersService {
     @InjectRepository(User) private readonly usersRepository: Repository<User>,
   ) {}
 
-  async getAllUser(): Promise<User[] | string> {
-    const users = await this.usersRepository.find();
-      return users;
+  async getAllUser(pageNum: number, limitNum: number, search?: string): Promise<{ items: User[]; total: number; page: number; limit: number }> {
+    const page = Math.max(1, Number.isFinite(pageNum) ? pageNum : parseInt(String(pageNum), 10) || 1);
+    const limit = Math.max(1, Number.isFinite(limitNum) ? limitNum : parseInt(String(limitNum), 10) || 10);
+    const take = Math.min(limit, 100);
+    const skip = (page - 1) * take;
+
+    const qb = this.usersRepository.createQueryBuilder('user');
+
+    if (search && search.trim().length) {
+      const q = `%${search.toLowerCase()}%`;
+      qb.where('LOWER(user.name) LIKE :q OR LOWER(user.email) LIKE :q OR LOWER(user.surname) LIKE :q', { q });
+    }
+
+    qb.orderBy('user.id_user', 'ASC').skip(skip).take(take);
+
+    const [items, total] = await qb.getManyAndCount();
+
+    return { items, total, page, limit: take };
   }
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
@@ -49,26 +64,6 @@ export class UsersService {
 
   async deleteUser(id_user: number): Promise<void> {
     await this.usersRepository.delete(id_user);
-  }
-
-  async validateUser(email: string, password: string): Promise<User | null> {
-    const user = await this.usersRepository.findOne({ where: { email } });
-    if (user && (await bcrypt.compare(password, user.password))) {
-      return user;
-    }
-    return null;
-  }
-
-  async getUserByToken(token: string): Promise<User> {
-    const user = await this.usersRepository.findOne({
-      where: { token: token },
-    });
-
-    if (!user) {
-      throw new Error('Usuario no encontrado');
-    }
-
-    return user;
   }
 
 }

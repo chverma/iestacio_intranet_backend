@@ -8,8 +8,10 @@ import {
   Param,
   Post,
   Put,
+  Res,
   Query,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { AuthService } from 'src/Autentication/auth.service';
 import { CreateUserDto, UpdateUserDto } from './user.dto';
 import { UsersService } from './users.service';
@@ -21,9 +23,21 @@ export class UsersController {
   ) {}
 
   @Get()
-  getAllUser() {
+  async getAllUser(
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+    @Query('q') query = '',
+  ) {
     try {
-      return this.usersService.getAllUser();
+      const pageNum = parseInt(page as string, 10) || 1;
+      const limitNum = parseInt(limit as string, 10) || 10;
+
+      // sanitize 'q': trim, cap length and allow only safe chars (alnum, spaces and common email chars)
+      const raw = String(query ?? '').trim().slice(0, 100);
+      const sanitized = raw.replace(/[^a-zA-Z0-9@._\-\s]/g, '');
+      const search = sanitized.length ? sanitized : null;
+
+      return await this.usersService.getAllUser(pageNum, limitNum, search);
     } catch (err) {
       throw new HttpException(
         {
@@ -38,10 +52,10 @@ export class UsersController {
     }
   }
 
-  @Get('by-token/:token')
+  /*@Get('by-token/:token')
   getUserByToken(@Param('token') tokenStr: string) {
     return this.usersService.getUserByToken(tokenStr);
-  }
+  }*/
 
   @Get(':id')
   getUser(@Param('id') id: string) {
@@ -76,29 +90,5 @@ export class UsersController {
       throw new HttpException('Invalid user ID', HttpStatus.BAD_REQUEST);
     }
     return this.usersService.deleteUser(userId);
-  }
-  @Post('login')
-  async login(
-    @Body('email') email: string,
-    @Body('password') password: string,
-  ) {
-    if (!email || !password) {
-      throw new HttpException(
-        'El nombre de usuario y la contraseña son obligatorios',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const user = await this.usersService.validateUser(email, password);
-    if (!user) {
-      throw new HttpException(
-        'Credenciales inválidas',
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
-
-    const token = await this.authService.generateToken(user.id_user);
-
-    return { token };
   }
 }
