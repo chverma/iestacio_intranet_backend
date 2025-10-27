@@ -235,6 +235,7 @@ export class CalendarEventService {
     if (!event) {
       throw new HttpException('Event not found', HttpStatus.NOT_FOUND);
     }
+    eventDto.body = await this.parseHTMLBody(eventDto.body);
     Object.assign(event, eventDto);
     event.processed = false;
     return this.eventRepository.save(event);
