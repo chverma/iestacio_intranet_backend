@@ -5,8 +5,10 @@ import {
   ManyToOne,
   JoinColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { User } from '../users/users.entity';
+import { Absence } from 'src/absence/absence.entity';
 
 @Entity()
 export class CalendarEvent {
@@ -16,6 +18,9 @@ export class CalendarEvent {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'id_user' })
   user: User;
+
+  @OneToMany(() => Absence, (absence) => absence.event)
+  absences: Absence[];
 
   @Column()
   subject: string;

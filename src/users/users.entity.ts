@@ -1,3 +1,4 @@
+import { Absence } from 'src/absence/absence.entity';
 import { CalendarEvent } from '../calendarEvent/calendarEvent.entity';
 import {
   Entity,
@@ -34,4 +35,7 @@ export class User {
 
   @OneToMany(() => CalendarEvent, (event) => event.user)
   events: CalendarEvent[];
+
+  @OneToMany(() => Absence, (absence) => absence.user)
+  absences: Absence[];
 }

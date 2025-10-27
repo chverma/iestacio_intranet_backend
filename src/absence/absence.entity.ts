@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../users/users.entity';
+import { CalendarEvent } from '../calendarEvent/calendarEvent.entity';
 
 @Entity()
 export class Absence {
@@ -16,6 +17,10 @@ export class Absence {
   @ManyToOne(() => User)
   @JoinColumn()
   user: User;
+
+  @ManyToOne(() => CalendarEvent)
+  @JoinColumn()
+  event: CalendarEvent;
 
   @Column('varchar', { length: 255 })
   subject: string;
