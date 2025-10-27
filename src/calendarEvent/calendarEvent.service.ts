@@ -298,6 +298,7 @@ export class CalendarEventService {
 
         for (const elem of filteredSchedule) {
           elem.user = event.user;
+          elem.event = event;
           const newAbsence = this.absenceRepository.create(elem);
           await this.absenceRepository.save(newAbsence);
         }
