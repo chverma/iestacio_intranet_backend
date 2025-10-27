@@ -48,6 +48,11 @@ export class CalendarEventController {
     return this.calendarEventService.createEvent(eventDto);
   }
 
+  @Put('by-outlookid/:id')
+  async updateEventByOutlookId(@Param('id') id: string, @Body() eventDto: updateEventDto) {
+    return this.calendarEventService.updateEventByOutlookId(id, eventDto);
+  }
+
   @Put(':id')
   async updateEvent(@Param('id') id: string, @Body() eventDto: updateEventDto) {
     const eventId = parseInt(id);

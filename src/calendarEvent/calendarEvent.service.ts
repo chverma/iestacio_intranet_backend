@@ -230,6 +230,16 @@ export class CalendarEventService {
     return saved;
   }
 
+  async updateEventByOutlookId(id: string, eventDto: updateEventDto): Promise<CalendarEvent> {
+    const event = await this.eventRepository.findOne({ where: { outlook_event_id: id } });
+    if (!event) {
+      throw new HttpException('Event not found', HttpStatus.NOT_FOUND);
+    }
+    Object.assign(event, eventDto);
+    event.processed = false;
+    return this.eventRepository.save(event);
+  }
+
   async updateEvent(id: number, eventDto: updateEventDto): Promise<CalendarEvent> {
     const event = await this.eventRepository.findOne({ where: { id_event: id } });
     if (!event) {
@@ -259,6 +269,9 @@ export class CalendarEventService {
 
     for (const event of events) {
       console.log('Processing event:', event.id_event, event.subject, event.start);
+
+      // Delete existing absences for this event to avoid duplicates
+      await this.absenceRepository.delete({ event: { id_event: event.id_event } });
 
       const startDayIdx = event.start.getDay();
       const endDayIdx = event.end.getDay();
