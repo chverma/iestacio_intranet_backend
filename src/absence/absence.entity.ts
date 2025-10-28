@@ -18,7 +18,7 @@ export class Absence {
   @JoinColumn()
   user: User;
 
-  @ManyToOne(() => CalendarEvent)
+  @ManyToOne(() => CalendarEvent, (event) => event.absences)
   @JoinColumn()
   event: CalendarEvent;
 

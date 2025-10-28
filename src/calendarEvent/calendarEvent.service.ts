@@ -235,9 +235,14 @@ export class CalendarEventService {
     if (!event) {
       throw new HttpException('Event not found', HttpStatus.NOT_FOUND);
     }
-    eventDto.body = await this.parseHTMLBody(eventDto.body);
-    Object.assign(event, eventDto);
+
+    if (eventDto.body) {
+      eventDto.body = await this.parseHTMLBody(eventDto.body);
+    }
+
     event.processed = false;
+    Object.assign(event, eventDto);
+
     return this.eventRepository.save(event);
   }
 
@@ -266,7 +271,7 @@ export class CalendarEventService {
   subjectHours = { '08': '05', '09': '00', '10': '50', '11': '15', '12': '10', '13': '05', '14': '00', '15': '10', '16': '05', '17': '00', '18': '15', '19': '10', '20': '05', '21': '10' };
   @Cron('*/15 * * * * *')
   async handleCron() {
-    const events = await this.eventRepository.find({ where: { processed: false }, relations: ['user'] });
+    const events = await this.eventRepository.find({ where: { processed: false , deleted: false }, relations: ['user'] });
 
     for (const event of events) {
       console.log('Processing event:', event.id_event, event.subject, event.start);

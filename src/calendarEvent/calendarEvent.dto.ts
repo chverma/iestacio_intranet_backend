@@ -1,4 +1,4 @@
-import { IsString, ValidateNested, IsOptional, IsDate } from 'class-validator';
+import { IsString, ValidateNested, IsOptional, IsDate, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class createEventDto {
@@ -41,4 +41,8 @@ export class updateEventDto {
   @IsOptional()
   @IsString()
   outlook_event_id: string;
+
+  @IsOptional()
+  @IsBoolean()
+  deleted: boolean;
 }

@@ -19,7 +19,7 @@ export class CalendarEvent {
   @JoinColumn({ name: 'id_user' })
   user: User;
 
-  @OneToMany(() => Absence, (absence) => absence.event)
+  @OneToMany(() => Absence, (absence) => absence.event, { cascade: false })
   absences: Absence[];
 
   @Column()
@@ -46,4 +46,6 @@ export class CalendarEvent {
   @Column({ default: false })
   processed: boolean;
 
+  @Column({ default: false })
+  deleted: boolean;
 }
