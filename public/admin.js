@@ -158,18 +158,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 const id = u.id_user ?? u.id ?? '';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${id}</td>
-                    <td>${u.name ?? ''}</td>
-                    <td>${u.email ?? ''}</td>
-                    <td>${u.role ?? ''}</td>
-                    <td class="text-end">
-                      <button class="btn btn-sm btn-outline-secondary edit-btn">Editar</button>
-                    </td>
-                `;
+      <td>${id}</td>
+      <td>${u.name ?? ''}</td>
+      <td>${u.email ?? ''}</td>
+      <td>${u.role ?? ''}</td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-secondary edit-btn">Editar</button>
+      </td>
+    `;
                 tbody.appendChild(tr);
                 const edit = tr.querySelector('.edit-btn');
                 if (edit) edit.addEventListener('click', () => openEditModal('users', id, u));
             }
+            setupRowCheckboxSync('users-header-select', 'users-tbody');
         }
 
         function renderAbsences(items) {
@@ -179,22 +180,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 const id = a.id_absence ?? a.id ?? '';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${id}</td>
-                    <td>${(a.user?.name ?? '') + ' ' + (a.user?.surname ?? '')}</td>
-                    <td>${a.start ? new Date(a.start).toLocaleString() : (a.date_absence ? new Date(a.date_absence).toLocaleString() : '')}</td>
-                    <td>${a.location ?? ''}</td>
-                    <td>${a.subject ?? ''}</td>
-                    <td class="text-end">
-                      <button class="btn btn-sm btn-outline-secondary edit-btn">Editar</button>
-                      <button class="btn btn-sm btn-outline-danger delete-btn">Eliminar</button>
-                    </td>
-                `;
+      <td><input type="checkbox" class="row-select" value="${id}"></td>
+      <td>${id}</td>
+      <td>${(a.user?.name ?? '') + ' ' + (a.user?.surname ?? '')}</td>
+      <td>${a.start ? new Date(a.start).toLocaleString() : (a.date_absence ? new Date(a.date_absence).toLocaleString() : '')}</td>
+      <td>${a.location ?? ''}</td>
+      <td>${a.subject ?? ''}</td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-secondary edit-btn">Editar</button>
+        <button class="btn btn-sm btn-outline-danger delete-btn">Eliminar</button>
+      </td>
+    `;
                 tbody.appendChild(tr);
                 const edit = tr.querySelector('.edit-btn');
                 if (edit) edit.addEventListener('click', () => openEditModal('absence', id, a));
                 const del = tr.querySelector('.delete-btn');
                 if (del) del.addEventListener('click', () => deleteItem('absence', id));
             }
+            setupRowCheckboxSync('absences-header-select', 'absences-tbody');
         }
 
         function renderEvents(items) {
@@ -207,22 +210,24 @@ document.addEventListener('DOMContentLoaded', function () {
                   tr.classList.add('tr-deleted');
                 }
                 tr.innerHTML = `
-                    <td>${id}</td>
-                    <td>${e.subject ?? e.title ?? ''}</td>
-                    <td>${e.start ? new Date(e.start).toLocaleString() : ''}</td>
-                    <td>${e.end ? new Date(e.end).toLocaleString() : ''}</td>
-                    <td>${(e.user?.name ?? '') + ' ' + (e.user?.surname ?? '')}</td>
-                    <td class="text-end">
-                      <button class="btn btn-sm btn-outline-secondary edit-btn">Editar</button>
-                      <button class="btn btn-sm btn-outline-danger delete-btn">Eliminar</button>
-                    </td>
-                `;
+      <td><input type="checkbox" class="row-select" value="${id}"></td>
+      <td>${id}</td>
+      <td>${e.subject ?? e.title ?? ''}</td>
+      <td>${e.start ? new Date(e.start).toLocaleString() : ''}</td>
+      <td>${e.end ? new Date(e.end).toLocaleString() : ''}</td>
+      <td>${(e.user?.name ?? '') + ' ' + (e.user?.surname ?? '')}</td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-secondary edit-btn">Editar</button>
+        <button class="btn btn-sm btn-outline-danger delete-btn">Eliminar</button>
+      </td>
+    `;
                 tbody.appendChild(tr);
                 const edit = tr.querySelector('.edit-btn');
                 if (edit) edit.addEventListener('click', () => openEditModal('calendarevent', id, e));
                 const del = tr.querySelector('.delete-btn');
                 if (del) del.addEventListener('click', () => deleteItem('calendarevent', id));
             }
+            setupRowCheckboxSync('events-header-select', 'events-tbody');
         }
 
         // Generic pager controller factory
@@ -293,3 +298,121 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     })();
+
+    // --- Selección múltiple y eliminación masiva ---
+function getSelectedIds(tbodyId) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return [];
+  return Array.from(tbody.querySelectorAll('input.row-select:checked')).map(cb => cb.value);
+}
+
+function setAllCheckboxes(tbodyId, checked) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  tbody.querySelectorAll('input.row-select').forEach(cb => { cb.checked = checked; });
+}
+
+function setupHeaderCheckbox(headerId, tbodyId) {
+  const headerCb = document.getElementById(headerId);
+  if (!headerCb) return;
+  headerCb.addEventListener('change', () => {
+    setAllCheckboxes(tbodyId, headerCb.checked);
+  });
+}
+
+function setupRowCheckboxSync(headerId, tbodyId) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  tbody.addEventListener('change', (e) => {
+    if (e.target.classList.contains('row-select')) {
+      const all = tbody.querySelectorAll('input.row-select');
+      const checked = tbody.querySelectorAll('input.row-select:checked');
+      const headerCb = document.getElementById(headerId);
+      if (headerCb) headerCb.checked = all.length === checked.length && all.length > 0;
+    }
+  });
+}
+
+// Modal de confirmación para eliminación masiva
+function openBulkDeleteModal(entity, ids, onConfirm) {
+  const modal = document.getElementById('bulkDeleteModal');
+  if (!modal) return;
+  document.getElementById('bulk-delete-entity').textContent = entity;
+  document.getElementById('bulk-delete-count').textContent = ids.length;
+  modal.style.display = 'flex';
+  // Confirmar
+  const confirmBtn = document.getElementById('bulk-delete-confirm');
+  const cancelBtn = document.getElementById('bulk-delete-cancel');
+  function cleanup() {
+    modal.style.display = 'none';
+    confirmBtn.removeEventListener('click', confirmHandler);
+    cancelBtn.removeEventListener('click', cancelHandler);
+  }
+  function confirmHandler() {
+    cleanup();
+    onConfirm();
+  }
+  function cancelHandler() {
+    cleanup();
+  }
+  confirmBtn.addEventListener('click', confirmHandler);
+  cancelBtn.addEventListener('click', cancelHandler);
+  // click fuera del cuadro para cerrar
+  modal.addEventListener('click', function esc(e) {
+    if (e.target === modal) {
+      cleanup();
+      modal.removeEventListener('click', esc);
+    }
+  });
+}
+
+async function bulkDelete(entity, ids) {
+  if (!ids.length) return;
+  try {
+    const res = await fetch(`/${entity}/bulk-delete`, {
+      method: 'DELETE',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(()=>null);
+      alert('Error al eliminar: ' + (text || res.status));
+      return;
+    }
+    location.reload();
+  } catch (err) {
+    console.error('Bulk delete error', err);
+    alert('Error al eliminar');
+  }
+}
+
+// Setup all pagers y controles de selección/eliminación masiva
+document.addEventListener('DOMContentLoaded', () => {
+  // ...existing code setupPager...
+
+  // --- Botones y cabeceras para selección múltiple ---
+  // Users
+  /*setupHeaderCheckbox('users-header-select', 'users-tbody');
+  document.getElementById('users-bulk-delete').addEventListener('click', () => {
+    const ids = getSelectedIds('users-tbody');
+    if (!ids.length) return alert('Selecciona al menos un registro.');
+    openBulkDeleteModal('users', ids, () => bulkDelete('users', ids));
+  });*/
+
+  // Absences
+  setupHeaderCheckbox('absences-header-select', 'absences-tbody');
+  document.getElementById('absences-bulk-delete').addEventListener('click', () => {
+    const ids = getSelectedIds('absences-tbody');
+    if (!ids.length) return alert('Selecciona al menos un registro.');
+    openBulkDeleteModal('absence', ids, () => bulkDelete('absence', ids));
+  });
+
+  // Events
+  setupHeaderCheckbox('events-header-select', 'events-tbody');
+  document.getElementById('events-bulk-delete').addEventListener('click', () => {
+    const ids = getSelectedIds('events-tbody');
+    if (!ids.length) return alert('Selecciona al menos un registro.');
+    openBulkDeleteModal('calendarevent', ids, () => bulkDelete('calendarevent', ids));
+  });
+});

@@ -79,4 +79,10 @@ export class AbsenceService {
       throw new HttpException('Absence not found', HttpStatus.NOT_FOUND);
     }
   }
+
+  async bulkDeleteAbsence(ids: number[]): Promise<{ deleted: number }> {
+    if (!Array.isArray(ids) || !ids.length) return { deleted: 0 };
+    const result = await this.absenceRepository.delete(ids);
+    return { deleted: result.affected ?? 0 };
+  }
 }

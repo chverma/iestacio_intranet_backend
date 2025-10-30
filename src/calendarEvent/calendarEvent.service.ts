@@ -262,6 +262,12 @@ export class CalendarEventService {
     }
   }
 
+  async bulkDeleteEvents(ids: number[]): Promise<{ deleted: number }> {
+    if (!Array.isArray(ids) || !ids.length) return { deleted: 0 };
+    const result = await this.eventRepository.delete(ids);
+    return { deleted: result.affected ?? 0 };
+  }
+
   async parseHTMLBody(htmlBody: string): Promise<string> {
     // Simple parsing logic (can be enhanced as needed)
     return htmlBody.replace(/<[^>]+>/g, '').replace(/[\r\n]/g, '');

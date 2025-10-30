@@ -68,6 +68,45 @@
 .text-muted { color: #6c757d; }
 .small { font-size: .85rem; }
 
+/* Checkbox de selección múltiple */
+.table th input[type="checkbox"],
+.table td input[type="checkbox"] {
+  accent-color: #0d6efd;
+  width: 1.1em;
+  height: 1.1em;
+  margin: 0;
+  vertical-align: middle;
+}
+
+/* Modal de eliminación masiva */
+#bulkDeleteModal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.3);
+}
+#bulkDeleteModal[style*="display: flex"] {
+  display: flex !important;
+}
+.bulk-modal-box {
+  background: #fff;
+  padding: 2em 1.5em 1.5em 1.5em;
+  max-width: 400px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+}
+.bulk-modal-actions {
+  display: flex;
+  gap: 1em;
+  justify-content: center;
+  margin-top: 1.5em;
+}
+
 /* responsive: stack search+limit on small screens */
 @media (max-width: 640px) {
   .d-flex.gap-2 { flex-direction: column; gap: .5rem; }

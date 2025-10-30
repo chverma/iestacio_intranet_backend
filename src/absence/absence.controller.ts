@@ -101,6 +101,14 @@ export class AbsenceController {
     return this.absenceService.updateAbsence(absenceId, absenceDto);
   }
 
+  @Delete('bulk-delete')
+  async bulkDeleteAbsence(@Body() body: { ids: number[] }) {
+    if (!body || !Array.isArray(body.ids) || !body.ids.length) {
+      throw new HttpException('No absence IDs provided', HttpStatus.BAD_REQUEST);
+    }
+    return this.absenceService.bulkDeleteAbsence(body.ids);
+  }
+
   @Delete(':id')
   async deleteAbsence(@Param('id') id: string) {
     const absenceId = parseInt(id);

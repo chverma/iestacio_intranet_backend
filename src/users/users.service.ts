@@ -66,4 +66,10 @@ export class UsersService {
     await this.usersRepository.delete(id_user);
   }
 
+  async bulkDeleteUsers(ids: number[]): Promise<{ deleted: number }> {
+    if (!Array.isArray(ids) || !ids.length) return { deleted: 0 };
+    const result = await this.usersRepository.delete(ids);
+    return { deleted: result.affected ?? 0 };
+  }
+
 }

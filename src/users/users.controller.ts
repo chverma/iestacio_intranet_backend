@@ -83,6 +83,14 @@ export class UsersController {
     });
   }
 
+  @Delete('bulk-delete')
+  async bulkDeleteUsers(@Body() body: { ids: number[] }) {
+    if (!body || !Array.isArray(body.ids) || !body.ids.length) {
+      throw new HttpException('No user IDs provided', HttpStatus.BAD_REQUEST);
+    }
+    return this.usersService.bulkDeleteUsers(body.ids);
+  }
+
   @Delete(':id')
   deleteUser(@Param('id') id: string) {
     const userId = parseInt(id);

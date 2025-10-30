@@ -62,6 +62,14 @@ export class CalendarEventController {
     return this.calendarEventService.updateEvent(eventId, eventDto);
   }
 
+  @Delete('bulk-delete')
+  async bulkDeleteEvents(@Body() body: { ids: number[] }) {
+    if (!body || !Array.isArray(body.ids) || !body.ids.length) {
+      throw new HttpException('No event IDs provided', HttpStatus.BAD_REQUEST);
+    }
+    return this.calendarEventService.bulkDeleteEvents(body.ids);
+  }
+
   @Delete(':id')
   async deleteEvent(@Param('id') id: string) {
     const eventId = parseInt(id);
