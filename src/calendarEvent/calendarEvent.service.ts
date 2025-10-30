@@ -21,8 +21,32 @@ export class CalendarEventService {
     private readonly absenceRepository: Repository<Absence>,
   ) { }
 
-  async getAllEvent(): Promise<CalendarEvent[]> {
-    return this.eventRepository.find({ relations: ['user'] });
+  async getAllEvent(
+    pageNum?: number,
+    limitNum?: number,
+    search?: string
+  ): Promise<{ items: CalendarEvent[]; total: number; page: number; limit: number }> {
+    const page = Math.max(1, Number.isFinite(pageNum) ? pageNum : parseInt(String(pageNum), 10) || 1);
+    const limit = Math.max(1, Number.isFinite(limitNum) ? limitNum : parseInt(String(limitNum), 10) || 10);
+    const take = Math.min(limit, 100);
+    const skip = (page - 1) * take;
+console.log("getAllEvent called with page:", page, "limit:", limit, "search:", search);
+    const qb = this.eventRepository.createQueryBuilder('event')
+      .leftJoinAndSelect('event.user', 'user');
+
+    if (search && search.trim().length) {
+      const q = `%${search.toLowerCase()}%`;
+      qb.where(
+        'LOWER(event.subject) LIKE :q OR LOWER(user.name) LIKE :q OR LOWER(user.surname) LIKE :q',
+        { q }
+      );
+    }
+
+    qb.orderBy('event.id_event', 'DESC').skip(skip).take(take);
+
+    const [items, total] = await qb.getManyAndCount();
+
+    return { items, total, page, limit: take };
   }
 
   async getEvent(id: number): Promise<CalendarEvent> {

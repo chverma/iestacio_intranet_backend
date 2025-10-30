@@ -11,19 +11,43 @@ export class AbsenceService {
     private readonly absenceRepository: Repository<Absence>,
   ) {}
 
-  async getAllAbsence({ from: fromIso, to: toIso, order }: { from: string | null; to: string | null; order: string }): Promise<Absence[]> {
-    const query = this.absenceRepository.createQueryBuilder('absence')
-      .leftJoinAndSelect('absence.user', 'user')
-      /*.where('absence.date_absence BETWEEN :start AND :end', {
-        start: fromIso ? new Date(fromIso) : null,
-        end: toIso ? new Date(toIso) : null,
-      });*/
+  async getAllAbsence({
+    from: fromIso,
+    to: toIso,
+    order,
+    page,
+    limit,
+    search,
+  }: {
+    from: string | null;
+    to: string | null;
+    order: string;
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<{ items: Absence[]; total: number; page: number; limit: number }> {
+    const qb = this.absenceRepository.createQueryBuilder('absence')
+      .leftJoinAndSelect('absence.user', 'user');
 
-    if (order) {
-      query.orderBy('absence.date_absence', order.toUpperCase() as 'ASC' | 'DESC');
+    if (search && search.trim().length) {
+      const q = `%${search.toLowerCase()}%`;
+      qb.where('LOWER(user.name) LIKE :q OR LOWER(user.surname) LIKE :q', { q });
     }
 
-    return query.getMany();
+    if (order) {
+      qb.orderBy('absence.date_absence', order.toUpperCase() as 'ASC' | 'DESC');
+    }
+
+    const pageNum = Math.max(1, Number.isFinite(page) ? page : parseInt(String(page), 10) || 1);
+    const limitNum = Math.max(1, Number.isFinite(limit) ? limit : parseInt(String(limit), 10) || 10);
+    const take = Math.min(limitNum, 100);
+    const skip = (pageNum - 1) * take;
+
+    qb.skip(skip).take(take);
+
+    const [items, total] = await qb.getManyAndCount();
+
+    return { items, total, page: pageNum, limit: take };
   }
 
   async getAbsence(id: number): Promise<Absence> {

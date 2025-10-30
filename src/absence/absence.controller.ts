@@ -34,12 +34,27 @@ export class AbsenceController {
     @Query('from') from?: string,
     @Query('to') to?: string,
     @Query('order') order?: string,
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+    @Query('q') query = '',
   ) {
     const { fromIso, toIso } = this.parseDateRange(from, to);
     if (!order) {
       order = 'ASC';
     }
-    return this.absenceService.getAllAbsence({ from: fromIso, to: toIso, order });
+    const pageNum = parseInt(page as string, 10) || 1;
+    const limitNum = parseInt(limit as string, 10) || 10;
+    const raw = String(query ?? '').trim().slice(0, 100);
+    const sanitized = raw.replace(/[^a-zA-Z0-9@._\-\s]/g, '');
+    const search = sanitized.length ? sanitized : null;
+    return this.absenceService.getAllAbsence({
+      from: fromIso,
+      to: toIso,
+      order,
+      page: pageNum,
+      limit: limitNum,
+      search,
+    });
   }
   @Get('calendar')
   async getCalendarAbsence(

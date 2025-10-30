@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Delete, HttpException, HttpStatus, Res, Render } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Delete, HttpException, HttpStatus, Res, Render, Query } from '@nestjs/common';
 import { CalendarEventService } from './calendarEvent.service';
 import { createEventDto, updateEventDto } from './calendarEvent.dto';
 import { Response } from 'express';
@@ -8,8 +8,30 @@ export class CalendarEventController {
   constructor(private readonly calendarEventService: CalendarEventService) {}
 
   @Get()
-  async getAllEvent() {
-    return this.calendarEventService.getAllEvent();
+  async getAllEvent(
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+    @Query('q') query = '',
+  ) {
+    try {
+      const pageNum = parseInt(page as string, 10) || 1;
+      const limitNum = parseInt(limit as string, 10) || 10;
+      const raw = String(query ?? '').trim().slice(0, 100);
+      const sanitized = raw.replace(/[^a-zA-Z0-9@._\-\s]/g, '');
+      const search = sanitized.length ? sanitized : null;
+      return await this.calendarEventService.getAllEvent(pageNum, limitNum, search);
+    } catch (err) {
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: err,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        {
+          cause: err,
+        },
+      );
+    }
   }
 
   @Get(':id')
