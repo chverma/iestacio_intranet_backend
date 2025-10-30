@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <meta http-equiv="refresh" content="60">
   <title>App</title>
+  <link rel="stylesheet" href="/absence.css">
 </head>
 
 <body>
@@ -22,7 +23,7 @@
     </thead>
     <tbody>
       {{#each absence}}
-      <tr>
+      <tr class="{{#if (classShift date_absence)}}even-row{{else}}odd-row{{/if}}">
         <td>
           {{formatDay date_absence}}
         </td>

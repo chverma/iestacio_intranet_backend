@@ -37,6 +37,17 @@ async function bootstrap() {
     return date.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: '2-digit', month: '2-digit', year: 'numeric' });
   });
 
+  // Helper para detectar el turno de clase según franjas horarias específicas
+  hbs.registerHelper('classShift', function(dateStr) {
+    const date = new Date(dateStr);
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+
+    const totalMinutes = hour * 60 + minute;
+
+    return (Math.floor((totalMinutes) / 55) % 2 == 0);
+  });
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
