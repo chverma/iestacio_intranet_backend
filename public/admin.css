@@ -55,6 +55,7 @@
 .table th, .table td { padding: .5rem .6rem; border-bottom: 1px solid #e9ecef; vertical-align: middle; }
 .table thead th { background: #f8f9fa; font-weight: 600; }
 .table-sm th, .table-sm td { padding: .35rem .45rem; }
+.tr-deleted { background-color: #f8d7da; color: #842029; }
 
 /* buttons */
 .btn { display: inline-flex; align-items: center; gap: .4rem; padding: .35rem .6rem; font-size: .85rem; border-radius: .375rem; border: 1px solid transparent; cursor: pointer; }

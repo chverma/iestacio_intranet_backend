@@ -203,6 +203,9 @@ document.addEventListener('DOMContentLoaded', function () {
             for (const e of items) {
                 const id = e.id_event ?? e.id ?? '';
                 const tr = document.createElement('tr');
+                if (e.deleted) {
+                  tr.classList.add('tr-deleted');
+                }
                 tr.innerHTML = `
                     <td>${id}</td>
                     <td>${e.subject ?? e.title ?? ''}</td>
