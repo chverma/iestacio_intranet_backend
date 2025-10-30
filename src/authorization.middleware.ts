@@ -67,8 +67,6 @@ export class AuthorizationMiddleware implements NestMiddleware {
       if (!isValid) {
         throw new UnauthorizedException('Token inválido o expirado');
       }
-
-      console.log("TOKEN VALIDATED IN MIDDLEWARE:", token);
     }
 
     // IP validation (optional)
