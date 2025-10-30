@@ -33,9 +33,13 @@ export class AbsenceController {
   async getAllAbsence(
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('order') order?: string,
   ) {
     const { fromIso, toIso } = this.parseDateRange(from, to);
-    return this.absenceService.getAllAbsence({ from: fromIso, to: toIso });
+    if (!order) {
+      order = 'ASC';
+    }
+    return this.absenceService.getAllAbsence({ from: fromIso, to: toIso, order });
   }
   @Get('calendar')
   async getCalendarAbsence(

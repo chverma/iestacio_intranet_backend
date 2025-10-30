@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const params = new URLSearchParams();
             params.set('page', page);
             params.set('limit', limit);
+            params.set('order', 'DESC');
             if (search) params.set('q', search);
             const res = await fetch(path + '?' + params.toString(), { credentials: 'same-origin' });
             if (!res.ok) throw new Error('Fetch error ' + res.status);

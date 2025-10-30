@@ -11,8 +11,19 @@ export class AbsenceService {
     private readonly absenceRepository: Repository<Absence>,
   ) {}
 
-  async getAllAbsence({ from: fromIso, to: toIso }): Promise<Absence[]> {
-    return this.absenceRepository.find({ relations: ['user'] });
+  async getAllAbsence({ from: fromIso, to: toIso, order }: { from: string | null; to: string | null; order: string }): Promise<Absence[]> {
+    const query = this.absenceRepository.createQueryBuilder('absence')
+      .leftJoinAndSelect('absence.user', 'user')
+      /*.where('absence.date_absence BETWEEN :start AND :end', {
+        start: fromIso ? new Date(fromIso) : null,
+        end: toIso ? new Date(toIso) : null,
+      });*/
+
+    if (order) {
+      query.orderBy('absence.date_absence', order.toUpperCase() as 'ASC' | 'DESC');
+    }
+
+    return query.getMany();
   }
 
   async getAbsence(id: number): Promise<Absence> {
