@@ -80,7 +80,7 @@ export class AbsenceService {
       toDate = new Date(toIso);
     } else {
       const now = new Date();
-      fromDate = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+      fromDate = new Date(now.getTime() - 1 * 60 * 60 * 1000);
       toDate = new Date(now.getTime() + 3 * 60 * 60 * 1000);
     }
     return this.absenceRepository.createQueryBuilder('absence')
