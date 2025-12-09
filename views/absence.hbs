@@ -23,22 +23,19 @@
     </thead>
     <tbody>
       {{#each absence}}
-      <tr class="{{#if (classShift date_absence)}}even-row{{else}}odd-row{{/if}}">
-        <td>
-          {{formatDay date_absence}}
-        </td>
-        <td>
-          {{formatHour date_absence}}
-        </td>
-        <td>{{subject}}</td>
-        <td>{{group}}</td>
-        <td>{{location}}</td>
-        <td>{{work}}</td>
-        <td>{{user.name}} {{user.surname}}</td>
-      </tr>
+          <tr class="{{#if (classShift date_absence)}}even-row{{else}}odd-row{{/if}}">
+          <td>{{formatDay date_absence}}</td>
+          <td>{{formatHour date_absence}}</td>
+          <td>{{subject}}</td>
+          <td>{{group}}</td>
+          <td>{{location}}</td>
+          <td>{{work}}</td>
+          <td>{{user.name}} {{user.surname}}</td>
+        </tr>
       {{/each}}
     </tbody>
   </table>
+  <img src="/qr.png" alt="QR Code" class="qr-code">
 </body>
 
 </html>
